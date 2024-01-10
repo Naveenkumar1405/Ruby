@@ -1,0 +1,164 @@
+body, html {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-container {
+    width: 700px;
+    height: 600px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-height: 100vh;
+}
+
+.card {
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.5s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    transform-origin: center;
+}
+
+.front, .back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.front {
+    background: white;
+    justify-content: space-around;
+}
+
+.back {
+    background: #f7f7f7;
+    transform: rotateY(-180deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    flex-direction: column;
+}
+
+.card.flipped {
+    transform: rotateY(180deg);
+}
+
+.leads-image {
+    width: 40%;
+    height: 100%;
+    object-fit: contain;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+#customButton {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: gold;
+    background-color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+#customButton:hover {
+    background-color: gold;
+    color: black;
+}
+
+input[type="text"], input[type="tel"], input[type="email"], input[type="submit"], input[type="file"] {
+    width: 300px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.submit-button {
+    padding: 10px 20px;
+    width: 100%;
+    font-size: 16px;
+    color: black;
+    background-color: gold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.submit-button:hover {
+    background-color: goldenrod;
+}
+
+#createWithFileButton{
+    color: gold!important;
+    background-color: black!important;
+}
+
+.icon-input {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.icon-input i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #555;
+    z-index: 10;
+}
+
+.icon-input input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    text-align: right;
+    direction: rtl;
+}
+
+.icon-input input:focus {
+    direction: ltr;
+}
+
+#message {
+    z-index: 1000;
+    display: none;
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: opacity 2s;
+}
+
+#message p {
+    font-size: 16px;
+    color: #000000;
+}

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/inventory.css">
+  <title>Inventory Management</title>
+  <link rel="icon" type="image/x-icon" href="/img/fav.png">
+</head>
+<body>
+<div class="modal__container" id="modal-container">
+  <div class="modal__content">
+    <div class="modal__close close-modal" title="Close">
+      <i class='bx bx-x'></i>
+    </div>
+    <img src="<%= @user_details['profileImage'] %>" alt="Profile Image" class="modal__img">
+    <h1 class="modal__title"><%= @user_details['name'] %></h1>
+    <p class="modal__description"><%= @user_details['mobile'] %></p>
+    <p class="modal__description"><%= @user_details['email'] %></p>
+    <p class="modal__description"><%= Time.at(@user_details['dob'].to_i / 1000).strftime("%d-%m-%Y") %></p>
+    <button class="modal__button modal__button-width">
+      <%= @user_details['department'] %>
+    </button>
+  </div>
+</div>
+
+<div class="nav" id="navbar">
+  <nav class="nav__container">
+    <div>
+      <img src="/img/onwords.svg" alt="Logo" class="nav__logo-name">
+      <div class="nav__list">
+        <div class="nav__items">
+
+          <a href="/" class="nav__link">
+            <i class='bx bx-home nav__icon'></i>
+            <span class="nav__name">Home</span>
+          </a>
+
+          <div class="nav__dropdown">
+            <i class='bx bx-user nav__icon' ></i>
+            <span class="nav__name">Clients</span>
+            <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+            <div class="nav__dropdown-collapse">
+              <div class="nav__dropdown-content">
+                <a href="/states" class="nav__dropdown-item">Status</a>
+                <a href="/create_lead" class="nav__dropdown-item">create Lead</a>
+                <a href="/bulk_assign" class="nav__dropdown-item">Bulk Assign</a>
+                <a href="/my_clients" class="nav__dropdown-item">My clients</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav__items">
+            <div class="nav__dropdown">
+              <i class='bx bx-compass nav__icon' ></i>
+              <span class="nav__name">Files</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/invoice" class="nav__dropdown-item">Invoice</a>
+                  <a href="/proforma-invoice" class="nav__dropdown-item">Proforma</a>
+                  <a href="/quotation" class="nav__dropdown-item">Quotation</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/create_staff" class="nav__link">
+              <i class='bx bx-plus nav__icon' ></i>
+              <span class="nav__name">Create Staff</span>
+            </a>
+
+            <div class="nav__dropdown">
+              <i class='bx bx-smile nav__icon' ></i>
+              <span class="nav__name">Attendance</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/attendance" class="nav__dropdown-item">Daily</a>
+                  <a href="/attendance/monthly_summary" class="nav__dropdown-item">Monthly</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/notifications" class="nav__link">
+              <i class='bx bx-bell nav__icon' ></i>
+              <span class="nav__name">Notification</span>
+              <% if @unread_count && @unread_count > 0 %>
+                <span class="nav__notification"><%= @unread_count %></span>
+              <% end %>
+            </a>
+
+            <a href="/inventory" class="nav__link active">
+              <i class='bx bx-bookmark nav__icon' ></i>
+              <span class="nav__name">Inventory</span>
+            </a>
+
+            <a href="/view_completed_schedules" class="nav__link">
+              <i class='bx bx-message-check nav__icon' ></i>
+              <span class="nav__name">Completion History</span>
+            </a>
+
+            <a href="/schedules" class="nav__link">
+              <i class='bx bx-calendar nav__icon'></i>
+              <span class="nav__name">Schedules</span>
+              <% total_not_done = @not_done_calls + @not_done_visits + @not_done_installations + @not_done_services %>
+              <% if total_not_done > 0 %>
+                <span class="nav__notification"><%= total_not_done %></span>
+              <% end %>
+            </a>
+
+          </div>
+        </div>
+      </div>
+      <a href="/logout" class="nav__link nav__logout">
+        <i class='bx bx-log-out nav__icon' ></i>
+        <span class="nav__name">Log Out</span>
+      </a>
+    </div>
+  </nav>
+</div>
+
+<main>
+  <section>
+    <form id="add-item-form" action="/inventory/add" method="post">
+      <input type="text" name="id" placeholder="ID" required>
+      <input type="text" name="name" placeholder="Name" required>
+      <input type="text" name="max_price" placeholder="Max Price" required>
+      <input type="text" name="min_price" placeholder="Min Price" required>
+      <input type="text" name="obc" placeholder="OBC" required>
+      <input type="number" name="stock" placeholder="Stock" required>
+      <input type="submit" value="Add Item">
+    </form>
+    <div id="inventory-list">
+      <div id="item">
+        <span>ID</span>
+        <span>NAME</span>
+        <span>MAX PRICE</span>
+        <span>MIN PRICE</span>
+        <span>OBC</span>
+        <span>AVAILABILITY</span>
+      </div>
+    </div>
+    <div id="inventory-list">
+      <% @inventory_items.each do |id, item| %>
+        <div id="item-<%= id %>">
+          <span><%= id %></span>
+          <span><%= item['name'] %></span>
+          <span><%= item["max_price"] %></span>
+          <span><%= item["min_price"] %></span>
+          <span><%= item["obc"] %></span>
+          <span><%= item["stock"] %></span>
+
+          <button onclick="editItem('<%= id %>')" class="icon-button">
+            <i class='bx bx-edit'></i>
+          </button>
+
+          <div id="edit-form-<%= id %>" style="display: none;">
+            <input type="text" id="edit-name-<%= id %>" placeholder="Name" value="<%= item['name'] %>">
+            <input type="text" id="edit-max-price-<%= id %>" placeholder="Max Price" value="<%= item['max_price'] %>">
+            <input type="text" id="edit-min-price-<%= id %>" placeholder="Min Price" value="<%= item['min_price'] %>">
+            <input type="text" id="edit-obc-<%= id %>" placeholder="OBC" value="<%= item['obc'] %>">
+            <input type="number" id="edit-stock-<%= id %>" placeholder="Stock" value="<%= item['stock'] %>">
+
+            <button onclick="updateItem('<%= id %>')" class="icon-button">
+              <i class='bx bx-check'></i>
+            </button>
+
+            <div id="update-success-<%= id %>" style="display: none;">
+              Updated!
+            </div>
+          </div>
+
+          <button onclick="confirmDelete('<%= id %>')" class="icon-button">
+            <i class='bx bx-trash'></i>
+          </button>
+
+        </div>
+      <% end %>
+    </div>
+  </section>
+</main>
+<div class="loader"></div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var loader = document.querySelector('.loader');
+
+        document.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                loader.style.display = 'grid';
+            });
+        });
+    });
+
+    window.onload = function() {
+        var loader = document.querySelector('.loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    };
+</script>
+<script>
+    const showMenu = (headerToggle, navbarId) =>{
+        const toggleBtn = document.getElementById(headerToggle),
+          nav = document.getElementById(navbarId)
+
+        if(headerToggle && navbarId){
+            toggleBtn.addEventListener('click', ()=>{
+                nav.classList.toggle('show-menu')
+                toggleBtn.classList.toggle('bx-x')
+            })
+        }
+    }
+    showMenu('header-toggle','navbar')
+
+    const linkColor = document.querySelectorAll('.nav__link')
+
+    function colorLink(){
+        linkColor.forEach(l => l.classList.remove('active'))
+        this.classList.add('active')
+    }
+    linkColor.forEach(l => l.addEventListener('click', colorLink))
+</script>
+<script>
+    const showModal = (openButton, modalContent) =>{
+        const openBtn = document.getElementById(openButton),
+            modalContainer = document.getElementById(modalContent)
+
+        if(openBtn && modalContainer){
+            openBtn.addEventListener('click', ()=>{
+                modalContainer.classList.add('show-modal')
+            })
+        }
+    }
+    showModal('open-modal','modal-container')
+
+    const closeBtn = document.querySelectorAll('.close-modal')
+
+    function closeModal(){
+        const modalContainer = document.getElementById('modal-container')
+        modalContainer.classList.remove('show-modal')
+    }
+    closeBtn.forEach(c => c.addEventListener('click', closeModal))
+</script>
+<script>
+    function confirmDelete(itemId) {
+        if (confirm('Are you sure you want to delete this item?')) {
+            fetch(`/inventory/delete/${itemId}`, { method: 'POST' })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                        return response.json();
+                    } else {
+                        throw new Error('Request failed.');
+                    }
+                })
+                .then(data => {
+                    console.log('Item deleted successfully');
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
+    }
+</script>
+<script>
+    function editItem(itemId) {
+        document.getElementById(`edit-form-${itemId}`).style.display = 'block';
+    }
+
+    function updateItem(itemId) {
+        const updatedData = {
+            name: document.getElementById(`edit-name-${itemId}`).value,
+            max_price: document.getElementById(`edit-max-price-${itemId}`).value,
+            min_price: document.getElementById(`edit-min-price-${itemId}`).value,
+            obc: document.getElementById(`edit-obc-${itemId}`).value,
+            stock: parseInt(document.getElementById(`edit-stock-${itemId}`).value, 10),
+        };
+
+        fetch(`/inventory/update/${itemId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
+        }).then(response => {
+            if (response.ok) {
+                document.getElementById(`edit-form-${itemId}`).style.display = 'none';
+                document.getElementById(`update-success-${itemId}`).style.display = 'block';
+                location.reload();
+            } else {
+                throw new Error('Request failed.');
+            }
+        }).catch(error => {
+            console.error(error);
+        });
+    }
+
+</script>
+</body>
+</html>

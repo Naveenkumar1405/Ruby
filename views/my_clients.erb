@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/clients.css">
+  <link rel="icon" type="image/x-icon" href="/img/fav.png">
+  <title>Onwords WorkSpace</title>
+</head>
+<body>
+<header class="header">
+  <div class="header__container">
+    <section class="modal container header__img">
+      <button class="modal__button" id="open-modal">
+        <i class='bx bx-star' id="header-toggle"></i>
+      </button>
+    </section>
+    <a href="#" class="header__logo">Onwords WorkSpace</a>
+    <div class="header__toggle">
+      <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
+  </div>
+</header>
+<div class="modal__container" id="modal-container">
+  <div class="modal__content">
+    <div class="modal__close close-modal" title="Close">
+      <i class='bx bx-x'></i>
+    </div>
+    <img src="<%= @user_details['profileImage'] %>" alt="Profile Image" class="modal__img">
+    <h1 class="modal__title"><%= @user_details['name'] %></h1>
+    <p class="modal__description"><%= @user_details['mobile'] %></p>
+    <p class="modal__description"><%= @user_details['email'] %></p>
+    <p class="modal__description"><%= Time.at(@user_details['dob'].to_i / 1000).strftime("%d-%m-%Y") %></p>
+    <button class="modal__button modal__button-width">
+      <%= @user_details['department'] %>
+    </button>
+  </div>
+</div>
+
+<div class="nav" id="navbar">
+  <nav class="nav__container">
+    <div>
+      <img src="/img/onwords.svg" alt="Logo" class="nav__logo-name">
+      <div class="nav__list">
+        <div class="nav__items">
+
+          <a href="/" class="nav__link">
+            <i class='bx bx-home nav__icon'></i>
+            <span class="nav__name">Home</span>
+          </a>
+
+          <div class="nav__dropdown">
+            <i class='bx bx-user nav__icon active' ></i>
+            <span class="nav__name">Clients</span>
+            <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+            <div class="nav__dropdown-collapse">
+              <div class="nav__dropdown-content">
+                <a href="/states" class="nav__dropdown-item">Status</a>
+                <a href="/create_lead" class="nav__dropdown-item">create Lead</a>
+                <a href="/bulk_assign" class="nav__dropdown-item">Bulk Assign</a>
+                <a href="/my_clients" class="nav__dropdown-item">My clients</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav__items">
+            <div class="nav__dropdown">
+              <i class='bx bx-compass nav__icon' ></i>
+              <span class="nav__name">Files</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/invoice" class="nav__dropdown-item">Invoice</a>
+                  <a href="/proforma-invoice" class="nav__dropdown-item">Proforma</a>
+                  <a href="/quotation" class="nav__dropdown-item">Quotation</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/create_staff" class="nav__link">
+              <i class='bx bx-plus nav__icon' ></i>
+              <span class="nav__name">Create Staff</span>
+            </a>
+
+            <div class="nav__dropdown">
+              <i class='bx bx-smile nav__icon' ></i>
+              <span class="nav__name">Attendance</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/attendance" class="nav__dropdown-item">Daily</a>
+                  <a href="/attendance/monthly_summary" class="nav__dropdown-item">Monthly</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/notifications" class="nav__link">
+              <i class='bx bx-bell nav__icon' ></i>
+              <span class="nav__name">Notification</span>
+              <% if @unread_count && @unread_count > 0 %>
+                <span class="nav__notification"><%= @unread_count %></span>
+              <% end %>
+            </a>
+
+            <a href="/inventory" class="nav__link">
+              <i class='bx bx-bookmark nav__icon' ></i>
+              <span class="nav__name">Inventory</span>
+            </a>
+
+            <a href="/view_completed_schedules" class="nav__link">
+              <i class='bx bx-message-check nav__icon' ></i>
+              <span class="nav__name">Completion History</span>
+            </a>
+
+            <a href="/schedules" class="nav__link">
+              <i class='bx bx-calendar nav__icon'></i>
+              <span class="nav__name">Schedules</span>
+              <% total_not_done = @not_done_calls + @not_done_visits + @not_done_installations + @not_done_services %>
+              <% if total_not_done > 0 %>
+                <span class="nav__notification"><%= total_not_done %></span>
+              <% end %>
+            </a>
+
+          </div>
+        </div>
+      </div>
+      <a href="/logout" class="nav__link nav__logout">
+        <i class='bx bx-log-out nav__icon' ></i>
+        <span class="nav__name">Log Out</span>
+      </a>
+    </div>
+  </nav>
+</div>
+
+<main>
+  <section>
+
+    <div class="client-section">
+      <button type="button" onclick="MyClients()">Show My Clients</button>
+      <span id="client-count"></span>
+    </div>
+
+    <div class="table-section">
+      <div id="customer-list"></div>
+    </div>
+
+  </section>
+</main>
+
+<div class="loader"></div>
+</body>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var loader = document.querySelector('.loader');
+
+        document.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                loader.style.display = 'grid';
+            });
+        });
+    });
+
+    window.onload = function() {
+        var loader = document.querySelector('.loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    };
+</script>
+<script>
+    function MyClients() {
+        fetch('/fetch_my_clients')
+            .then(response => response.json())
+            .then(customers => {
+                let tableHtml = `<table>
+                            <tr>
+                              <th>Name</th>
+                              <th>Phone</th>
+                              <th>Status</th>
+                              <th>Enquired For</th>
+                              <th>In-charge</th>
+                            </tr>`;
+                customers.forEach(customer => {
+                    tableHtml += `<tr>
+                            <td><a href="/customer_profile?phone_number=${customer.phone_number}">${customer.name}</a></td>
+                            <td>${customer.phone_number}</td>
+                            <td>${customer.customer_state}</td>
+                            <td>${customer.inquired_for || 'N/A'}</td>
+                            <td>${customer.LeadIncharge || 'N/A'}</td>
+                          </tr>`;
+                });
+                tableHtml += `</table>`;
+                document.getElementById('customer-list').innerHTML = tableHtml;
+                document.getElementById('client-count').innerText = `Count = ${customers.length}`;
+                document.addEventListener('DOMContentLoaded', MyClients);
+            });
+    }
+</script>
+<script>
+    const showMenu = (headerToggle, navbarId) =>{
+        const toggleBtn = document.getElementById(headerToggle),
+            nav = document.getElementById(navbarId)
+
+        if(headerToggle && navbarId){
+            toggleBtn.addEventListener('click', ()=>{
+                nav.classList.toggle('show-menu')
+                toggleBtn.classList.toggle('bx-x')
+            })
+        }
+    }
+    showMenu('header-toggle','navbar')
+
+    const linkColor = document.querySelectorAll('.nav__link')
+
+    function colorLink(){
+        linkColor.forEach(l => l.classList.remove('active'))
+        this.classList.add('active')
+    }
+    linkColor.forEach(l => l.addEventListener('click', colorLink))
+</script>
+<script>
+    const showModal = (openButton, modalContent) =>{
+        const openBtn = document.getElementById(openButton),
+            modalContainer = document.getElementById(modalContent)
+
+        if(openBtn && modalContainer){
+            openBtn.addEventListener('click', ()=>{
+                modalContainer.classList.add('show-modal')
+            })
+        }
+    }
+    showModal('open-modal','modal-container')
+
+    const closeBtn = document.querySelectorAll('.close-modal')
+
+    function closeModal(){
+        const modalContainer = document.getElementById('modal-container')
+        modalContainer.classList.remove('show-modal')
+    }
+    closeBtn.forEach(c => c.addEventListener('click', closeModal))
+</script>
+</html>

@@ -1,0 +1,207 @@
+.card2, .card1, .card3, .card4 {
+    width: 90px;
+    height: 90px;
+    outline: none;
+    border: none;
+    background: gold;
+    border-radius: 5px 90px 5px 5px;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+    transition: 300ms cubic-bezier(0.76, -0.19, 0.15, 1.17);
+}
+.card1:hover, .card2:hover, .card3:hover, .card4:hover  {
+    cursor: pointer;
+    scale: 1.1;
+    background-color: goldenrod;
+    color: black;
+}
+
+.main-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 40px auto;
+}
+
+.content-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.task-section, .suggestion-section {
+    flex: 1;
+    min-width: 150px;
+    max-width: 50%;
+}
+.suggestion img{
+    max-height: 400px;
+}
+
+.card {
+    background-color: #e5e5e5;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.card-header h2 {
+    background-color:gold;
+    color: black;
+    padding: 15px;
+    margin: 0;
+    text-align: center;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+input[type="text"], textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #000000;
+    border-radius: 4px;
+    height: 70px;
+    resize: vertical;
+}
+
+.submit-btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: gold;
+    color: #000000;
+    transition: background-color 0.3s ease;
+    align-self: flex-start;
+}
+
+.submit-btn:hover {
+    background-color: #000000;
+    color: goldenrod;
+}
+
+.card img {
+    width: 70%;
+    height: 50%;
+    display: block;
+}
+
+#task-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.come-back-img {
+    max-width: 200px;
+    max-height: 200px;
+    display: block;
+    margin: 0 auto;
+}
+
+.task-section {
+    background-color: #f7f7f7;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 20px;
+}
+
+.card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.card-header {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+#task-list {
+    list-style: none;
+    padding: 0;
+}
+
+#task-list li {
+    background-color: #ffffff;
+    border-radius: 4px;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#task-list li button {
+    border: none;
+    background-color: #ff0000;
+    color: white;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+#task-list li button:hover {
+    background-color: #e56161;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #000000;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.submit-btn {
+    background-color: black;
+    color: gold;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.submit-btn:hover {
+    background-color: gold;
+    color: black;
+}
+
+.drink-icon img, .food-icon img {
+    width: 24px; /* Adjust as necessary */
+    height: auto;
+    vertical-align: middle;
+}
+
+.card .drink-icon, .card .food-icon {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+    object-fit: fill;
+}

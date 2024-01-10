@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/login.css">
+  <link rel="icon" type="image/x-icon" href="/img/fav.png">
+  <title>Onwords workspace</title>
+</head>
+<body>
+<img src="/img/onwords.svg" alt="Onwords Logo" class="logo">
+  <div class="login">
+    <img src="/img/login.svg" alt="login image" class="login__img">
+    <form action="/login" method="post" class="login__form">
+      <h1 class="login__title">Login</h1>
+      <div class="login__content">
+        <div class="login__box">
+          <i class="ri-user-3-line login__icon"></i>
+          <div class="login__box-input">
+            <input type="email" required class="login__input" id="login-email" name="email" placeholder=" ">
+            <label for="login-email" class="login__label">Email</label>
+          </div>
+        </div>
+        <div class="login__box">
+          <i class="ri-lock-2-line login__icon"></i>
+          <div class="login__box-input">
+            <input type="password" required class="login__input" id="login-pass" name="password" placeholder=" ">
+            <label for="login-pass" class="login__label">Password</label>
+            <i class="ri-eye-off-line login__eye" id="login-eye"></i>
+          </div>
+        </div>
+        <% if @error_message %>
+          <p><%= @error_message %></p>
+        <% end %>
+      </div>
+      <button type="submit" class="login__button">Login</button>
+    </form>
+  </div>
+</body>
+<script>
+    document.getElementById('login-eye').addEventListener('click', function() {
+        const passwordInput = document.getElementById('login-pass');
+        const iconEye = this;
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            iconEye.classList.remove('ri-eye-off-line');
+            iconEye.classList.add('ri-eye-line');
+        } else {
+            passwordInput.type = 'password';
+            iconEye.classList.remove('ri-eye-line');
+            iconEye.classList.add('ri-eye-off-line');
+        }
+    });
+</script>
+</html>

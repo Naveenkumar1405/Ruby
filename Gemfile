@@ -1,0 +1,10 @@
+source 'https://rubygems.org'
+
+gem 'sinatra'
+gem 'webrick'
+gem 'firebase-admin-sdk'
+gem 'firebase'
+gem 'jwt'
+gem 'csv'
+gem 'uri'
+gem 'httparty'

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/attendance.css">
+  <link rel="icon" type="image/x-icon" href="/img/fav.png">
+  <title>Onwords WorkSpace</title>
+</head>
+<body>
+
+<header class="header">
+  <div class="header__container">
+    <a href="#" class="header__logo">Onwords WorkSpace</a>
+    <div class="header__toggle">
+      <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
+  </div>
+</header>
+
+<div class="nav" id="navbar">
+  <nav class="nav__container">
+    <div>
+      <img src="/img/onwords.svg" alt="Logo" class="nav__logo-name">
+      <div class="nav__list">
+        <div class="nav__items">
+
+          <a href="/" class="nav__link">
+            <i class='bx bx-home nav__icon'></i>
+            <span class="nav__name">Home</span>
+          </a>
+
+          <div class="nav__dropdown">
+            <i class='bx bx-user nav__icon' ></i>
+            <span class="nav__name">Clients</span>
+            <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+            <div class="nav__dropdown-collapse">
+              <div class="nav__dropdown-content">
+                <a href="/states" class="nav__dropdown-item">Status</a>
+                <a href="/create_lead" class="nav__dropdown-item">create Lead</a>
+                <a href="/bulk_assign" class="nav__dropdown-item">Bulk Assign</a>
+                <a href="/my_clients" class="nav__dropdown-item">My clients</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav__items">
+            <div class="nav__dropdown">
+              <i class='bx bx-compass nav__icon' ></i>
+              <span class="nav__name">Files</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/invoice" class="nav__dropdown-item">Invoice</a>
+                  <a href="/proforma-invoice" class="nav__dropdown-item">Proforma</a>
+                  <a href="/quotation" class="nav__dropdown-item">Quotation</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/create_staff" class="nav__link">
+              <i class='bx bx-plus nav__icon' ></i>
+              <span class="nav__name">Create Staff</span>
+            </a>
+
+            <div class="nav__dropdown">
+              <i class='bx bx-smile nav__icon' ></i>
+              <span class="nav__name">Attendance</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/attendance" class="nav__dropdown-item">Daily</a>
+                  <a href="/attendance/monthly_summary" class="nav__dropdown-item">Monthly</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/notifications" class="nav__link">
+              <i class='bx bx-bell nav__icon' ></i>
+              <span class="nav__name">Notification</span>
+              <% if @unread_count && @unread_count > 0 %>
+                <span class="nav__notification"><%= @unread_count %></span>
+              <% end %>
+            </a>
+
+            <a href="/inventory" class="nav__link">
+              <i class='bx bx-bookmark nav__icon' ></i>
+              <span class="nav__name">Inventory</span>
+            </a>
+
+            <a href="/view_completed_schedules" class="nav__link">
+              <i class='bx bx-message-check nav__icon active' ></i>
+              <span class="nav__name">Completion History</span>
+            </a>
+
+            <a href="/schedules" class="nav__link">
+              <i class='bx bx-calendar nav__icon'></i>
+              <span class="nav__name">Schedules</span>
+              <% total_not_done = @not_done_calls + @not_done_visits + @not_done_installations + @not_done_services %>
+              <% if total_not_done > 0 %>
+                <span class="nav__notification"><%= total_not_done %></span>
+              <% end %>
+            </a>
+
+          </div>
+        </div>
+      </div>
+      <a href="/logout" class="nav__link nav__logout">
+        <i class='bx bx-log-out nav__icon' ></i>
+        <span class="nav__name">Log Out</span>
+      </a>
+    </div>
+  </nav>
+</div>
+
+<main>
+    <button onclick="sortTableByCompletedTime()">Sort by Completed Time</button>
+    <div>
+      <% @done.each do |category, all_schedules| %>
+        <% if all_schedules.any? %>
+          <h2>Completed <%= category.capitalize %></h2>
+          <table class="schedule-table">
+            <thead>
+            <tr>
+              <th>Customer Number</th>
+              <th>Created Date/Time</th>
+              <th>Created By</th>
+              <th>Schedule Note</th>
+              <th>Scheduled Date</th>
+              <th>Scheduled Time</th>
+              <th>Tagged Staff</th>
+              <th>Updated Notes</th>
+              <th>Completed Time</th>
+            </tr>
+            </thead>
+            <tbody>
+            <% all_schedules.each do |id, schedules| %>
+              <% schedules.each do |dateTime, details| %>
+                <tr>
+                  <td><a href="/customer_profile/<%= id %>"><%= id %></a></td>
+                  <td><%= dateTime %></td>
+                  <td><%= details['created_by'] %></td>
+                  <td><%= details['schedule_note'] %></td>
+                  <td><%= details['scheduled_date'] %></td>
+                  <td><%= details['scheduled_time'] %></td>
+                  <td><%= details['tagged_staff'] %></td>
+                  <td><%= details['updated_notes'] %></td>
+                  <td><%= details['completed_time'] %></td>
+                </tr>
+              <% end %>
+            <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <p>No completed <%= category %> found.</p>
+        <% end %>
+      <% end %>
+    </div>
+</main>
+
+<div class="loader"></div>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function sortTableByCompletedTime() {
+        var table, rows, switching, i, x, y, shouldSwitch;
+        table = document.querySelector(".schedule-table");
+        switching = true;
+
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[7];
+                y = rows[i + 1].getElementsByTagName("TD")[7];
+
+                if (new Date(x.innerHTML.replace(/_/g, ' ')) > new Date(y.innerHTML.replace(/_/g, ' '))) {
+                    shouldSwitch = true;
+                    break;
+                }
+            }
+
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+            }
+        }
+    }
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var loader = document.querySelector('.loader');
+
+        document.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                loader.style.display = 'block';
+            });
+        });
+    });
+
+    window.onload = function() {
+        var loader = document.querySelector('.loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    };
+</script>
+<script>
+    const showMenu = (headerToggle, navbarId) =>{
+        const toggleBtn = document.getElementById(headerToggle),
+            nav = document.getElementById(navbarId)
+
+        if(headerToggle && navbarId){
+            toggleBtn.addEventListener('click', ()=>{
+                nav.classList.toggle('show-menu')
+                toggleBtn.classList.toggle('bx-x')
+            })
+        }
+    }
+    showMenu('header-toggle','navbar')
+
+    const linkColor = document.querySelectorAll('.nav__link')
+
+    function colorLink(){
+        linkColor.forEach(l => l.classList.remove('active'))
+        this.classList.add('active')
+    }
+    linkColor.forEach(l => l.addEventListener('click', colorLink))
+</script>
+<script>
+    const showModal = (openButton, modalContent) =>{
+        const openBtn = document.getElementById(openButton),
+            modalContainer = document.getElementById(modalContent)
+
+        if(openBtn && modalContainer){
+            openBtn.addEventListener('click', ()=>{
+                modalContainer.classList.add('show-modal')
+            })
+        }
+    }
+    showModal('open-modal','modal-container')
+
+    const closeBtn = document.querySelectorAll('.close-modal')
+
+    function closeModal(){
+        const modalContainer = document.getElementById('modal-container')
+        modalContainer.classList.remove('show-modal')
+    }
+    closeBtn.forEach(c => c.addEventListener('click', closeModal))
+</script>
+</html>

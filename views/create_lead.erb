@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/leads.css">
+  <link rel="icon" type="image/x-icon" href="/img/fav.png">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <title>Onwords WorkSpace</title>
+</head>
+<body>
+<header class="header">
+  <div class="header__container">
+    <section class="modal container header__img">
+      <button class="modal__button" id="open-modal">
+        <i class='bx bx-star' id="header-toggle"></i>
+      </button>
+    </section>
+    <a href="#" class="header__logo">Onwords WorkSpace</a>
+    <div class="header__toggle">
+      <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
+  </div>
+</header>
+<div class="modal__container" id="modal-container">
+  <div class="modal__content">
+    <div class="modal__close close-modal" title="Close">
+      <i class='bx bx-x'></i>
+    </div>
+    <img src="<%= @user_details['profileImage'] %>" alt="Profile Image" class="modal__img">
+    <h1 class="modal__title"><%= @user_details['name'] %></h1>
+    <p class="modal__description"><%= @user_details['mobile'] %></p>
+    <p class="modal__description"><%= @user_details['email'] %></p>
+    <p class="modal__description"><%= Time.at(@user_details['dob'].to_i / 1000).strftime("%d-%m-%Y") %></p>
+    <button class="modal__button modal__button-width">
+      <%= @user_details['department'] %>
+    </button>
+  </div>
+</div>
+
+<div class="nav" id="navbar">
+  <nav class="nav__container">
+    <div>
+      <img src="/img/onwords.svg" alt="Logo" class="nav__logo-name">
+      <div class="nav__list">
+        <div class="nav__items">
+
+          <a href="/" class="nav__link">
+            <i class='bx bx-home nav__icon'></i>
+            <span class="nav__name">Home</span>
+          </a>
+
+          <div class="nav__dropdown">
+            <i class='bx bx-user nav__icon active' ></i>
+            <span class="nav__name">Clients</span>
+            <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+            <div class="nav__dropdown-collapse">
+              <div class="nav__dropdown-content">
+                <a href="/states" class="nav__dropdown-item">Status</a>
+                <a href="/create_lead" class="nav__dropdown-item">create Lead</a>
+                <a href="/bulk_assign" class="nav__dropdown-item">Bulk Assign</a>
+                <a href="/my_clients" class="nav__dropdown-item">My clients</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav__items">
+            <div class="nav__dropdown">
+              <i class='bx bx-compass nav__icon' ></i>
+              <span class="nav__name">Files</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/invoice" class="nav__dropdown-item">Invoice</a>
+                  <a href="/proforma-invoice" class="nav__dropdown-item">Proforma</a>
+                  <a href="/quotation" class="nav__dropdown-item">Quotation</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/create_staff" class="nav__link">
+              <i class='bx bx-plus nav__icon' ></i>
+              <span class="nav__name">Create Staff</span>
+            </a>
+
+            <div class="nav__dropdown">
+              <i class='bx bx-smile nav__icon' ></i>
+              <span class="nav__name">Attendance</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/attendance" class="nav__dropdown-item">Daily</a>
+                  <a href="/attendance/monthly_summary" class="nav__dropdown-item">Monthly</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/notifications" class="nav__link">
+              <i class='bx bx-bell nav__icon' ></i>
+              <span class="nav__name">Notification</span>
+              <% if @unread_count && @unread_count > 0 %>
+                <span class="nav__notification"><%= @unread_count %></span>
+              <% end %>
+            </a>
+
+            <a href="/inventory" class="nav__link">
+              <i class='bx bx-bookmark nav__icon' ></i>
+              <span class="nav__name">Inventory</span>
+            </a>
+
+            <a href="/view_completed_schedules" class="nav__link">
+              <i class='bx bx-message-check nav__icon' ></i>
+              <span class="nav__name">Completion History</span>
+            </a>
+
+            <a href="/schedules" class="nav__link">
+              <i class='bx bx-calendar nav__icon'></i>
+              <span class="nav__name">Schedules</span>
+              <% total_not_done = @not_done_calls + @not_done_visits + @not_done_installations + @not_done_services %>
+              <% if total_not_done > 0 %>
+                <span class="nav__notification"><%= total_not_done %></span>
+              <% end %>
+            </a>
+
+          </div>
+        </div>
+      </div>
+      <a href="/logout" class="nav__link nav__logout">
+        <i class='bx bx-log-out nav__icon' ></i>
+        <span class="nav__name">Log Out</span>
+      </a>
+    </div>
+  </nav>
+</div>
+
+    <div class="card-container">
+      <div class="card">
+        <div class="front">
+          <img src="/img/leads.jpg" alt="Leads" class="leads-image">
+          <form id="uploadForm" action="/create_lead" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required />
+            <div class="form-group">
+              <select name="EnquiredFor" id="EnquiredFor" class="form-control" required>
+                <option value="">--Enquiry For--</option>
+                <option value="Security System">Security System</option>
+                <option value="Smart Home">Smart Home</option>
+                <option value="Gate Automation">Gate Automation</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+            <input type="submit" value="Upload and Create Leads" class="submit-button"/>
+          </form>
+          <p id="message"></p>
+          <button id="customButton">Create Custom</button>
+        </div>
+
+        <div class="back">
+          <form id="leadForm" action="/create_custom_lead" method="post">
+            <div class="icon-input">
+              <i class="fas fa-user"></i>
+              <input type="text" id="name" name="name" placeholder="Name" required>
+            </div>
+            <div class="icon-input">
+              <i class="fas fa-phone"></i>
+              <input type="tel" id="phone" name="phone" placeholder="Phone" required>
+            </div>
+            <div class="icon-input">
+              <i class="fas fa-envelope"></i>
+              <input type="email" id="email" name="email" placeholder="Email">
+            </div>
+            <div class="icon-input">
+              <i class="fas fa-question"></i>
+              <input type="text" id="enquiredFor" name="enquiredFor" placeholder="Enquired For" required>
+            </div>
+            <div class="icon-input">
+              <i class="fas fa-search"></i>
+              <input type="text" id="source" name="source" placeholder="Source" required>
+            </div>
+            <div class="icon-input">
+              <i class="fas fa-map-marker-alt"></i>
+              <input type="text" id="location" name="location" placeholder="Location" required>
+            </div>
+            <input type="submit" value="Submit" class="submit-button">
+          </form>
+          <div id="message-container"></div>
+          <input type="button" value="Create with File" id="createWithFileButton" class="submit-button"/>
+        </div>
+      </div>
+    </div>
+
+<div class="loader"></div>
+
+</body>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var loader = document.querySelector('.loader');
+
+        document.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                loader.style.display = 'grid';
+            });
+        });
+    });
+
+    window.onload = function() {
+        var loader = document.querySelector('.loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    };
+</script>
+<script>
+    document.getElementById('customButton').addEventListener('click', function() {
+        document.querySelector('.card').classList.add('flipped');
+    });
+
+    document.getElementById('createWithFileButton').addEventListener('click', function() {
+        document.querySelector('.card').classList.remove('flipped');
+    });
+</script>
+<script>
+    const showMenu = (headerToggle, navbarId) =>{
+        const toggleBtn = document.getElementById(headerToggle),
+            nav = document.getElementById(navbarId)
+
+        if(headerToggle && navbarId){
+            toggleBtn.addEventListener('click', ()=>{
+                nav.classList.toggle('show-menu')
+                toggleBtn.classList.toggle('bx-x')
+            })
+        }
+    }
+    showMenu('header-toggle','navbar')
+
+    const linkColor = document.querySelectorAll('.nav__link')
+
+    function colorLink(){
+        linkColor.forEach(l => l.classList.remove('active'))
+        this.classList.add('active')
+    }
+    linkColor.forEach(l => l.addEventListener('click', colorLink))
+</script>
+<script>
+    $(document).ready(function() {
+        $('#uploadForm').on('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '/create_lead',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    showMessage('<p style="color:green;">' + data + '</p>', '#message');
+                },
+                error: function(xhr, status, error) {
+                    showMessage('<p style="color:red;">Error: ' + xhr.responseText + '</p>', '#message');
+                }
+            });
+        });
+
+        $('#leadForm').on('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '/create_custom_lead',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    showMessage('<p style="color:green;">' + data + '</p>', '#message-container');
+                },
+                error: function(xhr, status, error) {
+                    showMessage('<p style="color:red;">Error: ' + xhr.responseText + '</p>', '#message-container');
+                }
+            });
+        });
+    });
+
+    function showMessage(message, container) {
+        var messageBox = $(container);
+        messageBox.html(message);
+        messageBox.css({
+            'display': 'block',
+            'opacity': '1'
+        });
+
+        setTimeout(function() {
+            messageBox.css({
+                'opacity': '0'
+            });
+
+            setTimeout(function() {
+                messageBox.css('display', 'none');
+            }, 2000);
+        }, 3000);
+    }
+</script>
+</html>

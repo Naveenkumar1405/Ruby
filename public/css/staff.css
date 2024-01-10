@@ -1,0 +1,115 @@
+.staff-section {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.staff-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: start;
+    width: 80%;
+}
+
+.staff-image,
+.staff-forms-flipper {
+    flex: 1;
+    padding: 10px;
+}
+
+.staff-image img {
+    width: 100%;
+    height: auto;
+}
+
+.staff-forms {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.staff-forms div {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="text"], input[type="email"], input[type="password"], select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    background-color: #f7a300;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+input[type="submit"]:hover {
+    background-color: #000000;
+}
+
+.staff-forms-flipper {
+    position: relative;
+    width: 60%;
+    height: 400px;
+    transform-style: preserve-3d;
+    transition: transform 0.8s;
+}
+
+.staff-forms-front, .staff-forms-back {
+    position: absolute;
+    width: 60%;
+    backface-visibility: hidden;
+}
+
+.staff-forms-back {
+    transform: rotateY(180deg);
+}
+
+.flip {
+    transform: rotateY(180deg);
+}
+
+.create, .delete {
+    display: inline-block;
+    padding: 12px 24px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.create {
+    background-color: #0ab73b;
+    color: #000000;
+}
+
+.delete {
+    background-color: #f10d0d;
+    color: #efeded;
+}
+
+.create:hover, .delete:hover {
+    background-color: #050505;
+    color: #cb8f08;
+}

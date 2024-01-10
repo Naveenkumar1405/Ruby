@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/assign.css">
+  <title>Lead Management</title>
+  <link rel="icon" type="image/x-icon" href="/img/fav.png">
+</head>
+<body>
+<header class="header">
+  <div class="header__container">
+
+    <a href="#" class="header__logo">Onwords WorkSpace</a>
+    <div class="header__toggle">
+      <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
+  </div>
+</header>
+
+<div class="nav" id="navbar">
+  <nav class="nav__container">
+    <div>
+      <img src="/img/onwords.svg" alt="Logo" class="nav__logo-name">
+      <div class="nav__list">
+        <div class="nav__items">
+
+          <a href="/" class="nav__link">
+            <i class='bx bx-home nav__icon'></i>
+            <span class="nav__name">Home</span>
+          </a>
+
+          <div class="nav__dropdown">
+            <i class='bx bx-user nav__icon active' ></i>
+            <span class="nav__name">Clients</span>
+            <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+            <div class="nav__dropdown-collapse">
+              <div class="nav__dropdown-content">
+                <a href="/states" class="nav__dropdown-item">Status</a>
+                <a href="/create_lead" class="nav__dropdown-item">create Lead</a>
+                <a href="/bulk_assign" class="nav__dropdown-item">Bulk Assign</a>
+                <a href="/my_clients" class="nav__dropdown-item">My clients</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav__items">
+            <div class="nav__dropdown">
+              <i class='bx bx-compass nav__icon' ></i>
+              <span class="nav__name">Files</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/invoice" class="nav__dropdown-item">Invoice</a>
+                  <a href="/proforma-invoice" class="nav__dropdown-item">Proforma</a>
+                  <a href="/quotation" class="nav__dropdown-item">Quotation</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/create_staff" class="nav__link">
+              <i class='bx bx-plus nav__icon' ></i>
+              <span class="nav__name">Create Staff</span>
+            </a>
+
+            <div class="nav__dropdown">
+              <i class='bx bx-smile nav__icon' ></i>
+              <span class="nav__name">Attendance</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/attendance" class="nav__dropdown-item">Daily</a>
+                  <a href="/attendance/monthly_summary" class="nav__dropdown-item">Monthly</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/notifications" class="nav__link">
+              <i class='bx bx-bell nav__icon' ></i>
+              <span class="nav__name">Notification</span>
+              <% if @unread_count && @unread_count > 0 %>
+                <span class="nav__notification"><%= @unread_count %></span>
+              <% end %>
+            </a>
+
+            <a href="/inventory" class="nav__link">
+              <i class='bx bx-bookmark nav__icon' ></i>
+              <span class="nav__name">Inventory</span>
+            </a>
+
+            <a href="/view_completed_schedules" class="nav__link">
+              <i class='bx bx-message-check nav__icon' ></i>
+              <span class="nav__name">Completion History</span>
+            </a>
+
+            <a href="/schedules" class="nav__link">
+              <i class='bx bx-calendar nav__icon'></i>
+              <span class="nav__name">Schedules</span>
+              <% total_not_done = @not_done_calls + @not_done_visits + @not_done_installations + @not_done_services %>
+              <% if total_not_done > 0 %>
+                <span class="nav__notification"><%= total_not_done %></span>
+              <% end %>
+            </a>
+
+          </div>
+        </div>
+      </div>
+      <a href="/logout" class="nav__link nav__logout">
+        <i class='bx bx-log-out nav__icon' ></i>
+        <span class="nav__name">Log Out</span>
+      </a>
+    </div>
+  </nav>
+</div>
+
+<main>
+  <div class="container">
+    <!-- Filter section -->
+    <div class="filter-section">
+      <div class="states-section">
+        <% if @states && @states.any? %>
+          <% @states.each do |state| %>
+            <button type="button" onclick="showCustomers('<%= state %>')"><%= state %></button>
+          <% end %>
+        <% end %>
+      </div>
+
+      <!-- Bulk assign section -->
+      <section class="bulk-assign-section">
+        <form id="bulk-assign-form" method="post" action="/bulk_assign">
+          <select name="new_incharge" required>
+            <option value="">Select In-charge</option>
+            <% @staff_names.each do |name, uid| %>
+              <option value="<%= name %>"><%= name %></option>
+            <% end %>
+          </select>
+          <button type="button" class="update" onclick="collectDataAndAssignIncharge()">Update In-charge</button>
+        </form>
+      </section>
+
+      <div class="incharge-section">
+        <% if @staff_names && @staff_names.any? %>
+          <select id="incharge-dropdown">
+            <option value="">Select In-charge</option>
+            <% @staff_names.each do |name, uid| %>
+              <option value="<%= name %>"><%= name %></option>
+            <% end %>
+          </select>
+          <button class="custom-button" type="button" onclick="showCustomersByIncharge()">Show Customers</button>
+          <span id="incharge-count"></span>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Table section -->
+    <div class="table-section">
+      <div id="customer-list"></div>
+    </div>
+
+  </div>
+</main>
+
+<div id="message-container"></div>
+<div class="loader"></div>
+</body>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var loader = document.querySelector('.loader');
+
+        document.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                loader.style.display = 'grid'; // Show loader
+            });
+        });
+    });
+
+    window.onload = function() {
+        var loader = document.querySelector('.loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    };
+</script>
+<script>
+    const showMenu = (headerToggle, navbarId) =>{
+        const toggleBtn = document.getElementById(headerToggle),
+            nav = document.getElementById(navbarId)
+
+        if(headerToggle && navbarId){
+            toggleBtn.addEventListener('click', ()=>{
+                nav.classList.toggle('show-menu')
+                toggleBtn.classList.toggle('bx-x')
+            })
+        }
+    }
+    showMenu('header-toggle','navbar')
+
+    const linkColor = document.querySelectorAll('.nav__link')
+
+    function colorLink(){
+        linkColor.forEach(l => l.classList.remove('active'))
+        this.classList.add('active')
+    }
+    linkColor.forEach(l => l.addEventListener('click', colorLink))
+</script>
+<script>
+
+    let selectedPhoneNumbers = [];
+    let selectedIncharge = '';
+
+    function collectDataAndAssignIncharge() {
+        const checkboxes = document.querySelectorAll('input[name="phone_numbers"]:checked');
+        selectedPhoneNumbers = Array.from(checkboxes).map(cb => cb.value);
+        selectedIncharge = document.querySelector('select[name="new_incharge"]').value;
+
+        console.log("Selected Incharge:", selectedIncharge);
+        console.log("Selected Phone Numbers:", selectedPhoneNumbers);
+
+        if (selectedPhoneNumbers.length > 0 && selectedIncharge) {
+            assignIncharge();
+        } else {
+            showMessage('Please select customers and a new incharge.');
+        }
+    }
+
+
+    function assignIncharge() {
+        console.log("Sending data to server: ", selectedPhoneNumbers, selectedIncharge);
+
+        fetch('/bulk_assign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone_numbers: selectedPhoneNumbers, new_incharge: selectedIncharge })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                showMessage(data.message || 'Operation completed successfully.');
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+                showMessage('An error occurred.');
+            });
+    }
+
+    function showMessage(message) {
+        const messageContainer = document.getElementById('message-container');
+        messageContainer.innerHTML = `<p>${message}</p>`;
+        messageContainer.style.display = 'block';
+        messageContainer.style.opacity = 1;
+        setTimeout(() => {
+            messageContainer.style.opacity = 0;
+            setTimeout(() => {
+                messageContainer.style.display = 'none';
+            }, 2000);
+        }, 3000);
+    }
+</script>
+<script>
+    const showModal = (openButton, modalContent) =>{
+        const openBtn = document.getElementById(openButton),
+            modalContainer = document.getElementById(modalContent)
+
+        if(openBtn && modalContainer){
+            openBtn.addEventListener('click', ()=>{
+                modalContainer.classList.add('show-modal')
+            })
+        }
+    }
+    showModal('open-modal','modal-container')
+
+    const closeBtn = document.querySelectorAll('.close-modal')
+
+    function closeModal(){
+        const modalContainer = document.getElementById('modal-container')
+        modalContainer.classList.remove('show-modal')
+    }
+    closeBtn.forEach(c => c.addEventListener('click', closeModal))
+</script>
+<script>
+    function showCustomers(state) {
+        fetch('/get_customers_by_state?state=' + encodeURIComponent(state))
+            .then(response => response.json())
+            .then(customers => {
+                let tableHtml = `<table>
+                                    <tr>
+                                      <th>Select</th>
+                                      <th>Name</th>
+                                      <th>Phone</th>
+                                      <th>Status</th>
+                                      <th>Enquired For</th>
+                                      <th>In-charge</th>
+                                    </tr>`;
+                customers.forEach(customer => {
+                    if (customer.customer_state === state) {
+                        tableHtml += `<tr>
+                                        <td><input class="custom-checkbox" type="checkbox" name="phone_numbers" value="${customer.phone_number}"></td>
+                                        <td><a href="/customer_profile?phone_number=${customer.phone_number}">${customer.name}</a></td>
+                                        <td>${customer.phone_number}</td>
+                                        <td>${customer.customer_state}</td>
+                                        <td>${customer.inquired_for || 'N/A'}</td>
+                                        <td>${customer.LeadIncharge || 'N/A'}</td>
+                                      </tr>`;
+                    }
+                });
+                tableHtml += `</table>`;
+                document.getElementById('customer-list').innerHTML = tableHtml;
+            });
+    }
+</script>
+<script>
+    function showCustomersByIncharge() {
+        const incharge = document.getElementById('incharge-dropdown').value;
+        if (incharge) {
+            fetch('/get_customers_by_incharge?incharge=' + encodeURIComponent(incharge))
+                .then(response => response.json())
+                .then(customers => {
+                    let tableHtml = `<table>
+                                    <tr>
+                                      <th>Select</th>
+                                      <th>Name</th>
+                                      <th>Phone</th>
+                                      <th>Status</th>
+                                      <th>Enquired For</th>
+                                      <th>In-charge</th>
+                                    </tr>`;
+                    customers.forEach(customer => {
+                        tableHtml += `<tr>
+                                    <td><input class="custom-checkbox" type="checkbox" name="phone_numbers" value="${customer.phone_number}"></td>
+                                    <td><a href="/customer_profile?phone_number=${customer.phone_number}">${customer.name}</a></td>
+                                    <td>${customer.phone_number}</td>
+                                    <td>${customer.customer_state}</td>
+                                    <td>${customer.inquired_for || 'N/A'}</td>
+                                    <td>${customer.LeadIncharge || 'N/A'}</td>
+                                  </tr>`;
+                    });
+                    tableHtml += `</table>`;
+                    document.getElementById('customer-list').innerHTML = tableHtml;
+                    document.getElementById('incharge-count').innerText = `Count = ${customers.length}`;
+                });
+        }
+    }
+</script>
+</html>

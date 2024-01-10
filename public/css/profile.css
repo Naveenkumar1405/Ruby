@@ -1,0 +1,343 @@
+main {
+    max-width: 1000px;
+    margin: 20px auto;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s;
+}
+
+.profile:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background: #ffffff;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+th, td {
+    text-align: left;
+    padding: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+th {
+    background-color: #4A90E2;
+    color: white;
+    font-size: 16px;
+}
+
+td {
+    font-size: 14px;
+    color: #333333;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f0f0f0;
+}
+
+
+table a {
+    color: #4A90E2;
+    text-decoration: none;
+}
+
+table a:hover {
+    text-decoration: underline;
+}
+
+
+form {
+    margin-bottom: 20px;
+    background: #eef4ff;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+select, input[type="submit"] {
+    padding: 8px;
+    margin-right: 10px;
+    border-radius: 4px;
+    border: 1px solid #bbbbbb;
+}
+
+input[type="submit"] {
+    cursor: pointer;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+input[type="submit"]:hover {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.notes {
+    background: #eef4ff;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.note {
+    padding: 10px;
+    margin-bottom: 10px;
+    background: white;
+    border-left: 4px solid #007BFF;
+    border-radius: 4px;
+}
+
+.note strong {
+    color: #333;
+}
+
+@media (max-width: 600px) {
+    th, td {
+        padding: 10px 5px;
+    }
+}
+
+#sendFeedbackButton {
+    background-color: #25D366;
+    color: white;
+    font-size: 16px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+#sendFeedbackButton .fa-whatsapp {
+    margin-right: 10px;
+}
+
+#addNoteButton{
+    background-color: #4A90E2;
+}
+
+#addNoteButton, #showCreateScheduleModal{
+    color: white;
+    font-size: 16px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: table-row;
+    align-items: center;
+    transition: background-color 0.3s ease;
+    margin: 10px;
+}
+
+#showCreateScheduleModal{
+    background-color: #0c30e7;
+}
+
+#addNoteButton:hover {
+    background-color: #357ABD;
+}
+
+.right-corner-modal-container {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1001;
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.modal__container {
+    display: none;
+    position: relative;
+    max-width: 400px;
+    background-color: #eaeaea;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.modal__content {
+    padding: 20px;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.show-modal {
+    display: block;
+    visibility: visible;
+}
+
+#addNoteForm textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-height: 100px;
+}
+
+#addNoteForm input[type="submit"] {
+    background-color: #4A90E2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#addNoteForm input[type="submit"]:hover {
+    background-color: #357ABD;
+}
+
+
+.modal_button{
+    display: inline-block;
+    background-color: black;
+    color: #FFF;
+    padding: 1rem 1.25rem;
+    border-radius: .5rem;
+    transition: .3s;
+}
+
+.modal_button:hover{
+    background-color: goldenrod;
+}
+
+.modal_container {
+    position: fixed; /* Use fixed to position relative to the viewport */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex; /* Use flexbox to center the content */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    background-color: hsla(var(--hue), 18%, 75%, .8);
+    z-index: var(--z-modal);
+    visibility: hidden;
+    opacity: 0;
+    transition: all .3s;
+}
+
+.modal_content {
+    position: relative;
+    background-color: var(--container-color);
+    text-align: center;
+    padding: 3rem 2rem 2rem;
+    border-radius: 1rem;
+    transition: all .3s;
+    transform: translateY(0); /* Remove the translateY as it's no longer needed */
+    border: 2px solid black;
+    max-width: 400px; /* Set a max-width for the modal */
+    width: 100%; /* Make it responsive */
+}
+
+.modal_close{
+    display: inline-flex;
+    background-color: var(--first-color);
+    border-radius: .25rem;
+    color: #FFF;
+    font-size: 1.5rem;
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    cursor: pointer;
+}
+
+.modal_title{
+    font-size: var(--big-font-size);
+    color: var(--title-color);
+    font-weight: 500;
+}
+
+.modal_description{
+    margin-bottom: 1.5rem;
+}
+
+.modal_button-width{
+    width: 90%;
+}
+
+.modal_button-link{
+    display: block;
+    margin: 1rem auto 0;
+    background-color: transparent;
+    color: var(--first-color);
+    font-weight: 500;
+}
+
+.show-modal{
+    visibility: visible;
+    opacity: 1;
+}
+
+.show-modal .modal__content{
+    transform: translateY(0);
+}
+
+@media screen and (min-width: 576px){
+    .modal__content{
+        margin: auto;
+        width: 380px;
+        border-radius: 1.25rem;
+    }
+
+    .modal__img{
+        width: 170px;
+    }
+}
+
+#staffDropdown {
+    width: 100%; /* Full width */
+    padding: 10px; /* Padding */
+    margin: 10px 0; /* Margin for spacing */
+    display: inline-block; /* Inline block level */
+    border: 1px solid #ccc; /* Border */
+    border-radius: 4px; /* Rounded borders */
+    box-sizing: border-box; /* Box sizing */
+}
+
+input[type="date"],
+input[type="time"],
+textarea {
+    width: 100%; /* Full width */
+    padding: 10px; /* Padding */
+    margin: 10px 0; /* Margin for spacing */
+    display: inline-block; /* Inline block level */
+    border: 1px solid #ccc; /* Border */
+    border-radius: 4px; /* Rounded borders */
+    box-sizing: border-box; /* Box sizing */
+}
+
+
