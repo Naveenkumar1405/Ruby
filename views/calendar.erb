@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+  <link rel="stylesheet" href="/css/calendar.css" />
+  <title>Schedules</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" type="image/x-icon" href="/img/fav.png">
+</head>
+<body>
+
+<header class="header">
+  <div class="header__container">
+    <a href="#" class="header__logo">Onwords WorkSpace</a>
+    <div class="header__toggle">
+      <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
+  </div>
+</header>
+
+<div class="nav" id="navbar">
+  <nav class="nav__container">
+    <div>
+      <img src="/img/onwords.svg" alt="Logo" class="nav__logo-name">
+      <div class="nav__list">
+        <div class="nav__items">
+
+          <a href="/" class="nav__link active">
+            <i class='bx bx-home nav__icon'></i>
+            <span class="nav__name">Home</span>
+          </a>
+
+          <div class="nav__dropdown">
+            <i class='bx bx-user nav__icon' ></i>
+            <span class="nav__name">Clients</span>
+            <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+            <div class="nav__dropdown-collapse">
+              <div class="nav__dropdown-content">
+                <a href="/states" class="nav__dropdown-item">Status</a>
+                <a href="/create_lead" class="nav__dropdown-item">create Lead</a>
+                <a href="/bulk_assign" class="nav__dropdown-item">Bulk Assign</a>
+                <a href="/my_clients" class="nav__dropdown-item">My clients</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav__items">
+            <div class="nav__dropdown">
+              <i class='bx bx-compass nav__icon' ></i>
+              <span class="nav__name">Files</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/invoice" class="nav__dropdown-item">Invoice</a>
+                  <a href="/proforma-invoice" class="nav__dropdown-item">Proforma</a>
+                  <a href="/quotation" class="nav__dropdown-item">Quotation</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/create_staff" class="nav__link">
+              <i class='bx bx-plus nav__icon' ></i>
+              <span class="nav__name">Create Staff</span>
+            </a>
+
+            <div class="nav__dropdown">
+              <i class='bx bx-smile nav__icon' ></i>
+              <span class="nav__name">Attendance</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/attendance" class="nav__dropdown-item">Daily</a>
+                  <a href="/attendance/monthly_summary" class="nav__dropdown-item">Monthly</a>
+                </div>
+              </div>
+            </div>
+
+            <a href="/notifications" class="nav__link">
+              <i class='bx bx-bell nav__icon' ></i>
+              <span class="nav__name">Notification</span>
+              <% if @unread_count && @unread_count > 0 %>
+                <span class="nav__notification"><%= @unread_count %></span>
+              <% end %>
+            </a>
+
+            <a href="/inventory" class="nav__link">
+              <i class='bx bx-bookmark nav__icon' ></i>
+              <span class="nav__name">Inventory</span>
+            </a>
+
+            <a href="/view_completed_schedules" class="nav__link">
+              <i class='bx bx-message-check nav__icon' ></i>
+              <span class="nav__name">Completion History</span>
+            </a>
+
+            <a href="/schedules" class="nav__link">
+              <i class='bx bx-calendar nav__icon'></i>
+              <span class="nav__name">Schedules</span>
+              <% total_not_done = @not_done_calls + @not_done_visits + @not_done_installations + @not_done_services %>
+              <% if total_not_done > 0 %>
+                <span class="nav__notification"><%= total_not_done %></span>
+              <% end %>
+            </a>
+
+          </div>
+        </div>
+      </div>
+      <a href="/logout" class="nav__link nav__logout">
+        <i class='bx bx-log-out nav__icon' ></i>
+        <span class="nav__name">Log Out</span>
+      </a>
+    </div>
+  </nav>
+</div>
+
+<main>
+  <section>
+    <div class="container">
+      <div class="left">
+        <div class="calendar">
+          <div class="month">
+            <i class="fas fa-angle-left prev"></i>
+            <div class="date">December 2015</div>
+            <i class="fas fa-angle-right next"></i>
+          </div>
+          <div class="weekdays">
+            <div>Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+          </div>
+          <div class="days"></div>
+          <div class="goto-today">
+            <div class="goto">
+              <input type="text" placeholder="mm/yyyy" class="date-input" />
+              <button class="goto-btn">Go</button>
+            </div>
+            <button class="today-btn">Today</button>
+          </div>
+        </div>
+      </div>
+      <div class="right">
+        <section class="task-buttons">
+          <% if @not_done_calls > 0 %>
+            <button id="callsButton" class="task-button">
+              <i class="fas fa-phone"></i>
+            <span class="notification"><%= @not_done_calls %></span></button>
+          <% end %>
+          <% if @not_done_visits > 0 %>
+            <button id="visitsButton" class="task-button"><i class="fas fa-car"></i> <span class="notification"><%= @not_done_visits %></span></button>
+          <% end %>
+          <% if @not_done_services > 0 %>
+            <button id="servicesButton" class="task-button"><i class="fas fa-tools"></i> <span class="notification"><%= @not_done_services %></span></button>
+          <% end %>
+          <% if @not_done_installations > 0 %>
+            <button id="installationsButton" class="task-button"><i class="fas fa-box"></i> <span class="notification"><%= @not_done_installations %></span></button>
+          <% end %>
+        </section>
+        <div class="today-date">
+          <div class="event-day">wed</div>
+          <div class="event-date">12th december 2022</div>
+        </div>
+        <div class="events">
+          <div id="scheduleData" class="schedule-data">
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="loader"></div>
+<script src="/js/calendar.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var loader = document.querySelector('.loader');
+
+        document.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                loader.style.display = 'grid';
+            });
+        });
+    });
+
+    window.onload = function() {
+        var loader = document.querySelector('.loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    };
+</script>
+<script>
+    const showMenu = (headerToggle, navbarId) =>{
+        const toggleBtn = document.getElementById(headerToggle),
+            nav = document.getElementById(navbarId)
+
+        if(headerToggle && navbarId){
+            toggleBtn.addEventListener('click', ()=>{
+                nav.classList.toggle('show-menu')
+                toggleBtn.classList.toggle('bx-x')
+            })
+        }
+    }
+    showMenu('header-toggle','navbar')
+
+    const linkColor = document.querySelectorAll('.nav__link')
+
+    function colorLink(){
+        linkColor.forEach(l => l.classList.remove('active'))
+        this.classList.add('active')
+    }
+    linkColor.forEach(l => l.addEventListener('click', colorLink))
+</script>
+</body>
+</html>

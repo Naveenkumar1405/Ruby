@@ -43,6 +43,18 @@ before do
   @unread_count = suggestions.count { |_, suggestion| !suggestion['isread'] }
 end
 
+def count_not_done(data)
+  return 0 if data.nil? || data.empty?
+
+  count = 0
+  data.each do |_id, schedules|
+    schedules.each do |_dateKey, details|
+      count += 1 unless details['is_done']
+    end
+  end
+  count
+end
+
 before do
   if request.path_info != '/login' && session[:user_uid]
     uid = session[:user_uid] || request.cookies['uid']
@@ -935,18 +947,6 @@ get '/schedules' do
   end
 end
 
-def count_not_done(data)
-  return 0 if data.nil? || data.empty?
-
-  count = 0
-  data.each do |_id, schedules|
-    schedules.each do |_dateKey, details|
-      count += 1 unless details['is_done']
-    end
-  end
-  count
-end
-
 get '/scheduled_calls' do
   content_type :json
   firebase.get('calls').body.to_json
@@ -990,6 +990,22 @@ get '/view_completed_schedules' do
     @user_details = get_staff_details(uid)
     @done = firebase.get('completed').body || {}
     erb :view_completed_schedules
+  else
+    redirect to('/login')
+  end
+end
+
+get '/calendar' do
+  if session[:user_uid]
+    uid = session[:user_uid] || request.cookies['uid']
+    @user_details = get_staff_details(uid)
+
+    @not_done_calls = count_not_done(firebase.get('calls').body)
+    @not_done_visits = count_not_done(firebase.get('visits').body)
+    @not_done_services = count_not_done(firebase.get('services').body)
+    @not_done_installations = count_not_done(firebase.get('installations').body)
+
+    erb :calendar
   else
     redirect to('/login')
   end
