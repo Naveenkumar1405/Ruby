@@ -13,7 +13,7 @@ $(document).ready(function() {
                 Object.entries(scheduleDetails).forEach(([dateTimeKey, details]) => {
                     let date = details.scheduled_date;
                     if (!scheduleData[date]) scheduleData[date] = [];
-                    scheduleData[date].push({ type, phoneNumber, details });
+                    scheduleData[date].push({ type, phoneNumber, details, dateKey: dateTimeKey });
                 });
             });
             initCalendar();
@@ -39,34 +39,36 @@ $(document).ready(function() {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     function initCalendar() {
-        const firstDayIndex = new Date(year, month, 1).getDay();
-        const lastDay = new Date(year, month + 1, 0).getDate();
-        const prevLastDay = new Date(year, month, 0).getDate();
-        const nextDays = 7 - new Date(year, month + 1, 0).getDay();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const prevLastDay = new Date(year, month, 0);
+        const prevDays = prevLastDay.getDate();
+        const lastDate = lastDay.getDate();
+        const day = firstDay.getDay();
+        const nextDays = 7 - lastDay.getDay() - 1;
 
         date.innerHTML = `${months[month]} ${year}`;
         let days = "";
 
-        for (let x = firstDayIndex; x > 0; x--) {
-            days += `<div class="prev-date">${prevLastDay - x + 1}</div>`;
+        // Days from the previous month
+        for (let x = day; x > 0; x--) {
+            days += `<div class="day prev-date">${prevDays - x + 1}</div>`;
         }
 
-        for (let i = 1; i <= lastDay; i++) {
+        // Current month's days with schedule data
+        for (let i = 1; i <= lastDate; i++) {
             let formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-                days += `<div class="day today active" data-date="${formattedDate}">${i}</div>`;
-            } else if (scheduleData[formattedDate]) {
+            if (scheduleData[formattedDate]) {
                 days += `<div class="day event" data-date="${formattedDate}">${i}</div>`;
             } else {
                 days += `<div class="day" data-date="${formattedDate}">${i}</div>`;
             }
         }
 
-
+        // Days from the next month
         for (let j = 1; j <= nextDays; j++) {
-            days += `<div class="next-date">${j}</div>`;
+            days += `<div class="day next-date">${j}</div>`;
         }
-
 
         daysContainer.innerHTML = days;
         addListener();
@@ -78,12 +80,13 @@ $(document).ready(function() {
                 document.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
                 this.classList.add('active');
                 let selectedDate = this.getAttribute('data-date');
-                updateDateDisplay(selectedDate);
-                updateEvents(selectedDate);
+                if (selectedDate) {
+                    updateDateDisplay(selectedDate);
+                    updateEvents(selectedDate);
+                }
             });
         });
     }
-
 
     function updateDateDisplay(selectedDate) {
         const dateObj = new Date(selectedDate);
@@ -96,20 +99,22 @@ $(document).ready(function() {
 
     function updateEvents(selectedDate) {
         let eventsHtml = '';
+
         if (scheduleData[selectedDate]) {
             eventsHtml = scheduleData[selectedDate].map(event => {
                 return `<div class="event-details">
-                    <div>Phone: ${event.phoneNumber}</div>
-                    <div>Type: ${event.type}</div>
-                    <div>Note: ${event.details.schedule_note}</div>
-                    <div>Time: ${event.details.scheduled_time}</div>
-                    <div>Scheduled by: ${event.details.created_by}</div>
-                    <div>Tagged Staff: ${event.details.tagged_staff}</div>
-                    <form action="/mark_done/${event.type}/${event.phoneNumber}/${selectedDate}" method="post">
-                        <input type="text" name="updated_notes" placeholder="updated notes">
-                        <button type="submit">Mark as Done</button>
-                    </form>
-                </div>`;
+                <div>Created Date: <span>${event.dateKey}</span></div>
+                <div>Phone: <span><a href="/customer_profile/${event.phoneNumber}">${event.phoneNumber}</a></span></div>
+                <div>Type: <span>${event.type}</span></div>
+                <div>Note: <span>${event.details.schedule_note}</span></div>
+                <div>Time: <span>${event.details.scheduled_time}</span></div>
+                <div>Scheduled by: <span>${event.details.created_by}</span></div>
+                <div>Tagged Staff: <span>${event.details.tagged_staff}</span></div>
+                <form action="/mark_done/${event.type}/${event.phoneNumber}/${event.dateKey}" method="post">
+                    <input type="text" name="updated_notes" placeholder="update notes">
+                    <button type="submit">Mark as Done</button>
+                </form>
+            </div>`;
             }).join('');
         } else {
             eventsHtml = `<div class="no-event">No events</div>`;
@@ -133,8 +138,6 @@ $(document).ready(function() {
             year++;
         }
         initCalendar();
-
-
     });
 
     todayBtn.addEventListener("click", () => {
@@ -179,6 +182,5 @@ $(document).ready(function() {
         const day = new Date(year, month, date);
         const dayName = day.toString().split(" ")[0];
     }
-
     initCalendar();
 });
