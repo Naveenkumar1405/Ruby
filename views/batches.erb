@@ -5,34 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/states.css">
   <link rel="stylesheet" href="/css/customer_by_state.css">
   <link rel="icon" type="image/x-icon" href="/img/fav.png">
   <title>Onwords WorkSpace</title>
+  <style>
+    #statePieChart{max-width: 500px!important;max-height: 500px!important;}
+    .chart-container {display: flex;justify-content: center;align-items: flex-start;}
+    .chart-labels {margin-right: 20px;}
+    .chart-labels p {margin: 0;padding: 5px;}
+  </style>
 </head>
 <body>
 <header class="header">
   <div class="header__container">
     <a href="#" class="header__logo">Onwords WorkSpace</a>
+
+    <select id="incharge-dropdown" onchange="filterCustomersByIncharge()">
+      <option value="">Select In-charge</option>
+      <% if @staff_names && !@staff_names.empty? %>
+        <% @staff_names.each do |name, uid| %>
+          <option value="<%= name %>"><%= name %></option>
+        <% end %>
+      <% else %>
+        <p>--None--</p>
+      <% end %>
+    </select>
+
     <div class="header__toggle">
       <i class='bx bx-menu' id="header-toggle"></i>
     </div>
+
   </div>
 </header>
-<div class="modal__container" id="modal-container">
-  <div class="modal__content">
-    <div class="modal__close close-modal" title="Close">
-      <i class='bx bx-x'></i>
-    </div>
-    <img src="<%= @user_details['profileImage'] %>" alt="Profile Image" class="modal__img">
-    <h1 class="modal__title"><%= @user_details['name'] %></h1>
-    <p class="modal__description"><%= @user_details['mobile'] %></p>
-    <p class="modal__description"><%= @user_details['email'] %></p>
-    <p class="modal__description"><%= Time.at(@user_details['dob'].to_i / 1000).strftime("%d-%m-%Y") %></p>
-    <button class="modal__button modal__button-width">
-      <%= @user_details['department'] %>
-    </button>
-  </div>
-</div>
 
 <div class="nav" id="navbar">
   <nav class="nav__container">
@@ -47,7 +52,7 @@
           </a>
 
           <div class="nav__dropdown">
-            <i class='bx bx-user nav__icon active'></i>
+            <i class='bx bx-user nav__icon'></i>
             <span class="nav__name">Clients</span>
             <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
             <div class="nav__dropdown-collapse">
@@ -101,7 +106,7 @@
             <% allowed_departments = %w[ADMIN MANAGEMENT] %>
             <% if allowed_departments.include?(@user_details['department']) %>
               <a href="/notifications" class="nav__link">
-                <i class='bx bx-bell nav__icon' ></i>
+                <i class='bx bx-bell nav__icon active' ></i>
                 <span class="nav__name">Notification</span>
                 <% if @unread_count && @unread_count > 0 %>
                   <span class="nav__notification"><%= @unread_count %></span>
@@ -156,8 +161,28 @@
 </div>
 
 <main>
+
   <section>
-    <h1>Customers in <%= params['state'] %></h1>
+    <ul>
+      <% @months.each do |month| %>
+        <li>
+          <a href="/get_customers_by_batch?batch=<%= month %>">
+            <%= month %> (<%= @month_counts[month] %> Leads)
+          </a>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+
+  <div class="chart-container">
+    <div class="chart-labels" id="chartLabels"></div>
+    <div class="chart-pie">
+      <canvas id="statePieChart" width="400" height="400"></canvas>
+    </div>
+  </div>
+
+  <section>
+    <h1>Customers in <%= params['batch'] %></h1>
     <table>
       <tr>
         <th>Name</th>
@@ -177,17 +202,107 @@
       <% end %>
     </table>
   </section>
+
 </main>
 
 <div class="loader"></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
+<script>
+    function filterCustomersByIncharge() {
+        var inchargeUid = document.getElementById('incharge-dropdown').value;
+        var batch = '<%= params['batch'] %>';
+
+        fetch(`/filter_customers?batch=${batch}&incharge=${inchargeUid}`)
+            .then(response => response.json())
+            .then(customers => {
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+<script>
+    function filterCustomersByIncharge() {
+        var inchargeUid = document.getElementById('incharge-dropdown').value;
+        var batch = '<%= params['batch'] %>';
+
+        fetch(`/filter_customers?batch=${batch}&incharge=${inchargeUid}`)
+            .then(response => response.json())
+            .then(customers => {
+                const stateCounts = {};
+                customers.forEach(customer => {
+                    const state = customer.customer_state;
+                    if(stateCounts[state]) {
+                        stateCounts[state] += 1;
+                    } else {
+                        stateCounts[state] = 1;
+                    }
+                });
+                createPieChart(stateCounts);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function createPieChart(stateCounts) {
+        // Clear existing content and populate new labels
+        const labelsContainer = document.getElementById('chartLabels');
+        labelsContainer.innerHTML = '';
+        Object.keys(stateCounts).forEach(state => {
+            const count = stateCounts[state];
+            const labelElement = document.createElement('p');
+            labelElement.textContent = `${state}: ${count}`;
+            labelsContainer.appendChild(labelElement);
+        });
+
+        const ctx = document.getElementById('statePieChart').getContext('2d');
+        const data = {
+            labels: Object.keys(stateCounts),
+            datasets: [{
+                label: 'Customer Count by State',
+                data: Object.values(stateCounts),
+                backgroundColor: [
+                    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'cyan', 'magenta', 'black', 'olive'
+                ],
+            }]
+        };
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+
+</script>
+<script>
+    function loadCustomersByBatch(batch) {
+        fetch('/get_customers_by_batch?batch=' + batch)
+            .then(response => response.json())
+            .then(data => {
+                displayCustomerData(data);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function displayCustomerData(data) {
+        var customerContainer = document.getElementById('customerData');
+        customerContainer.innerHTML = '';
+        data.forEach(customer => {
+            var customerElement = document.createElement('div');
+            customerElement.innerHTML = 'Customer Name: ' + customer.name + ' | Created Date: ' + customer.created_date;
+            customerContainer.appendChild(customerElement);
+        });
+    }
+</script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         var loader = document.querySelector('.loader');
 
         document.querySelectorAll('a').forEach(function(link) {
             link.addEventListener('click', function() {
-                loader.style.display = 'grid'; // Show loader
+                loader.style.display = 'grid';
             });
         });
     });
@@ -241,5 +356,12 @@
         modalContainer.classList.remove('show-modal')
     }
     closeBtn.forEach(c => c.addEventListener('click', closeModal))
+</script>
+<script>
+    function submitForm(form) {
+        let phone_number = document.getElementById('phone_number').value;
+        form.action = '/customer_profile/' + encodeURIComponent(phone_number);
+        return true;
+    }
 </script>
 </html>

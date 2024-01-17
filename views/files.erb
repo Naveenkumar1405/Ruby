@@ -156,7 +156,7 @@
               <h3>Invoice ID: <%= invoice_id || "ID not available" %></h3>
               <p>Created By: <%= details["CreatedBy"] || "Creator not available" %></p>
               <% if details["TimeStamp"] %>
-                <p>Time <%= Time.at(details["TimeStamp"] / 1000) %></p>
+                <p>Craeted Time: <%= Time.at(details["TimeStamp"] / 1000) %></p>
               <% else %>
                 <p>Time not available</p>
               <% end %>
@@ -184,7 +184,7 @@
               <h3>Proforma ID: <%= proforma_id || "ID not available" %></h3>
               <p>Created By: <%= details["CreatedBy"] || "Creator not available" %></p>
               <% if details["TimeStamp"] %>
-                <p>Timestamp: <%= Time.at(details["TimeStamp"] / 1000) %></p>
+                <p>Created Time: <%= Time.at(details["TimeStamp"] / 1000) %></p>
               <% else %>
                 <p>Timestamp not available</p>
               <% end %>
@@ -212,7 +212,7 @@
               <h3>Quotation ID: <%= quotation_id || "ID not available" %></h3>
               <p>Created By: <%= details["CreatedBy"] || "Creator not available" %></p>
               <% if details["TimeStamp"] %>
-                <p>Timestamp: <%= Time.at(details["TimeStamp"] / 1000) %></p>
+                <p>Created Time: <%= Time.at(details["TimeStamp"] / 1000) %></p>
               <% else %>
                 <p>Timestamp not available</p>
               <% end %>

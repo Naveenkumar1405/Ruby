@@ -132,6 +132,14 @@
           </a>
           <% end %>
 
+        <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+        <% if allowed_departments.include?(@user_details['department']) %>
+          <a href="/batch" class="nav__link">
+            <i class='bx bx-data nav__icon' ></i>
+            <span class="nav__name">Batch View</span>
+          </a>
+        <% end %>
+
           <a href="/schedules" class="nav__link">
             <i class='bx bx-phone nav__icon'></i>
             <span class="nav__name">Schedules</span>

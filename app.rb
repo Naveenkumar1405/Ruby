@@ -1010,3 +1010,100 @@ get '/calendar' do
     redirect to('/login')
   end
 end
+
+get '/batch' do
+  if session[:user_uid]
+    uid = session[:user_uid] || request.cookies['uid']
+    @user_details = get_staff_details(uid)
+
+    response = firebase.get('customer')
+
+    if response.success?
+      customers = response.body.values
+
+      @month_counts = {}
+      @customers = []
+      @staff_names = {}
+
+      customers.each do |customer|
+        next if customer['created_date'].nil?
+
+        month_year = customer['created_date'][0..6]
+        if @month_counts[month_year]
+          @month_counts[month_year] += 1
+        else
+          @month_counts[month_year] = 1
+        end
+      end
+
+      @months = @month_counts.keys.sort
+    else
+      @months = []
+      @month_counts = {}
+    end
+    erb :batches
+  else
+    redirect to('/login')
+  end
+end
+
+get '/get_customers_by_batch' do
+  if session[:user_uid]
+    batch = params['batch']
+    response = firebase.get('customer')
+    staff_response = firebase.get('staff_details')
+
+    if response.success?
+      customers = response.body.values
+      all_staff = staff_response.body
+      @staff_names = all_staff.select { |_uid, details| details['department'] == 'PR' }.map { |_uid, details| [details['name'], _uid] }
+      @customers = customers.select do |customer|
+        next if customer['created_date'].nil?
+        customer['created_date'][0..6] == batch
+      end
+
+      @months = []
+      @month_counts = {}
+      customers.each do |customer|
+        next if customer['created_date'].nil?
+        month_year = customer['created_date'][0..6]
+        if @month_counts[month_year]
+          @month_counts[month_year] += 1
+        else
+          @month_counts[month_year] = 1
+        end
+      end
+      @months = @month_counts.keys.sort
+
+      erb :batches
+    else
+      status 404
+      erb :error
+    end
+  else
+    redirect to('/login')
+  end
+end
+
+get '/filter_customers' do
+  if session[:user_uid]
+    batch = params['batch']
+    incharge_uid = params['incharge']
+    response = firebase.get('customer')
+
+    if response.success?
+      customers = response.body.values
+      filtered_customers = customers.select do |customer|
+        next if customer['created_date'].nil?
+        customer['created_date'][0..6] == batch && customer['LeadIncharge'] == incharge_uid
+      end
+
+      filtered_customers.to_json
+    else
+      status 404
+      { error: 'Data not found' }.to_json
+    end
+  else
+    redirect to('/login')
+  end
+end
