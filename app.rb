@@ -186,9 +186,9 @@ post '/order' do
   formatted_date = time.strftime('%Y-%m-%d')
   hour_min = time.hour * 100 + time.min
 
-  timeslot = if hour_min.between?(900, 1045)
+  timeslot = if hour_min.between?(330, 545)
                'FN'
-             elsif hour_min.between?(1400, 1530)
+             elsif hour_min.between?(900, 1030)
                'AN'
              else
                nil
