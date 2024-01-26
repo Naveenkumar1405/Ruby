@@ -284,6 +284,7 @@
                 processData: false,
                 success: function(data) {
                     showMessage('<p style="color:green;">' + data + '</p>', '#message');
+                    location.reload()
                 },
                 error: function(xhr, status, error) {
                     showMessage('<p style="color:red;">Error: ' + xhr.responseText + '</p>', '#message');
@@ -303,6 +304,7 @@
                 processData: false,
                 success: function(data) {
                     showMessage('<p style="color:green;">' + data + '</p>', '#message-container');
+                    location.reload()
                 },
                 error: function(xhr, status, error) {
                     showMessage('<p style="color:red;">Error: ' + xhr.responseText + '</p>', '#message-container');

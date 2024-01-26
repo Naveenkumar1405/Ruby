@@ -11,6 +11,11 @@ require 'httparty'
 FIREBASE_API_KEY = "AIzaSyCCTeiCYTB_npcWKKxl-Oj0StQLTmaFOaE"
 firebase_url = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
 firebase_secret = "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu"
+
+# FIREBASE_API_KEY = "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI"
+# firebase_url = "https://onwords-master-db-default-rtdb.firebaseio.com/"
+# firebase_secret = "dZ3YsARVGgTLK1IxplfLfNyh5B890uh7DdIhwLzR"
+
 firebase = Firebase::Client.new(firebase_url, firebase_secret)
 
 ENV['TZ'] = 'UTC'
@@ -22,6 +27,10 @@ enable :sessions
 def firebase
   @firebase ||= Firebase::Client.new("https://marketing-data-d141d-default-rtdb.firebaseio.com/", "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu")
 end
+
+# def firebase
+#   @firebase ||= Firebase::Client.new("https://onwords-master-db-default-rtdb.firebaseio.com/", "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI")
+# end
 
 error do
   redirect to('/not_found')
