@@ -652,7 +652,10 @@ end
 get '/create_lead' do
   if session[:user_uid]
     uid = session[:user_uid]
+    staff_response = firebase.get('staff_details')
+    all_staff = staff_response.body
     @user_details = get_staff_details(uid)
+    @staff_names = all_staff.select { |_uid, details| details['department'] == 'PR' }.map { |_uid, details| [details['name'], _uid] }
 
     if @user_details
       erb :create_lead
@@ -668,6 +671,7 @@ post '/create_lead' do
   content_type :text
   uid = session[:user_uid]
   user_details = get_staff_details(uid)
+  LeadIncharge = params[:lead_incharge].empty? ? "Not Assigned" : params[:lead_incharge]
 
   unless params[:file] && params[:file][:tempfile] && params[:file][:filename]
     return "No file selected!"
@@ -684,7 +688,7 @@ post '/create_lead' do
     "created_date" => current_date,
     "created_time" => current_time,
     "customer_state" => "New leads",
-    "LeadIncharge" => "Not Assigned",
+    "LeadIncharge" => LeadIncharge,
     "inquired_for" => inquired_for
   }
 

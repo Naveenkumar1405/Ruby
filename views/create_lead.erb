@@ -175,9 +175,18 @@
                 <option value="Security System">Security System</option>
                 <option value="Smart Home">Smart Home</option>
                 <option value="Gate Automation">Gate Automation</option>
+                <option value="B2B">B2B</option>
+                <option value="Solar System">Solar System</option>
+                <option value="Audio System">Audio System</option>
                 <option value="Others">Others</option>
               </select>
             </div>
+              <select name="lead_incharge">
+                <option value="">Assign In-charge</option>
+                <% @staff_names.each do |name, uid| %>
+                  <option value="<%= name %>"><%= name %></option>
+                <% end %>
+              </select>
             <input type="submit" value="Upload and Create Leads" class="submit-button"/>
           </form>
           <p id="message"></p>
