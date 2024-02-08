@@ -694,6 +694,7 @@ post '/create_lead' do
 
   added_numbers = []
   error_messages = []
+  lead_incharge_buckets = {}
 
   begin
     file_contents = file.read.encode("UTF-8", "binary", invalid: :replace, undef: :replace, replace: '')
@@ -702,7 +703,6 @@ post '/create_lead' do
     CSV.parse(file_contents, headers: true, liberal_parsing: true) do |row|
       lead_details = row.to_hash.merge(default_values)
       lead_details['phone_number'] = lead_details['phone_number'].to_s.gsub('p:', '').gsub('+91', '') if lead_details['phone_number']
-
       phone_number = lead_details['phone_number']
 
       if phone_number && !phone_number.empty?
@@ -714,6 +714,24 @@ post '/create_lead' do
           else
             firebase.set("customer/#{phone_number}", lead_details)
           end
+
+          lead_incharge_buckets[LeadIncharge] ||= { bucket_number: 1, counter: 0 }
+          lead_incharge_bucket = lead_incharge_buckets[LeadIncharge]
+          formatted_bucket_number = format('%02d', lead_incharge_bucket[:bucket_number])
+          phone_index = lead_incharge_bucket[:counter] + 1
+          formatted_phone_index = format('%02d', phone_index)
+          bucket_counter_key = "Bucket/#{LeadIncharge}/Counter/Bucket#{formatted_bucket_number}"
+          firebase.set(bucket_counter_key, phone_index)
+
+          if phone_index >= 50
+            lead_incharge_bucket[:bucket_number] += 1
+            lead_incharge_bucket[:counter] = 0
+          else
+            lead_incharge_bucket[:counter] = phone_index
+          end
+
+          bucket_key = "Bucket/#{LeadIncharge}/Bucket#{formatted_bucket_number}/#{formatted_phone_index}"
+          firebase.set(bucket_key, phone_number)
           added_numbers.push(phone_number)
         rescue => e
           error_messages.push("Error with phone number #{phone_number}: #{e.message}")
