@@ -717,18 +717,19 @@ post '/create_lead' do
 
           lead_incharge_buckets[LeadIncharge] ||= { bucket_number: 1, counter: 0 }
           lead_incharge_bucket = lead_incharge_buckets[LeadIncharge]
-          formatted_bucket_number = format('%02d', lead_incharge_bucket[:bucket_number])
-          phone_index = lead_incharge_bucket[:counter] + 1
-          formatted_phone_index = format('%02d', phone_index)
-          bucket_counter_key = "Bucket/#{LeadIncharge}/Counter/Bucket#{formatted_bucket_number}"
-          firebase.set(bucket_counter_key, phone_index)
 
-          if phone_index >= 50
+          if lead_incharge_bucket[:counter] >= 50
             lead_incharge_bucket[:bucket_number] += 1
             lead_incharge_bucket[:counter] = 0
-          else
-            lead_incharge_bucket[:counter] = phone_index
           end
+
+          formatted_bucket_number = format('%02d', lead_incharge_bucket[:bucket_number])
+          lead_incharge_bucket[:counter] += 1
+          phone_index = lead_incharge_bucket[:counter]
+          formatted_phone_index = format('%02d', phone_index)
+
+          bucket_counter_key = "Bucket/#{LeadIncharge}/Counter/Bucket#{formatted_bucket_number}"
+          firebase.set(bucket_counter_key, phone_index)
 
           bucket_key = "Bucket/#{LeadIncharge}/Bucket#{formatted_bucket_number}/#{formatted_phone_index}"
           firebase.set(bucket_key, phone_number)
