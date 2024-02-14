@@ -5,84 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
   <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="/css/buckets.css">
   <link rel="icon" type="image/x-icon" href="/img/fav.png">
   <title>Onwords WorkSpace</title>
-  <style>
-      .suggestions-container {
-          max-width: 800px;
-          margin: 20px auto;
-          padding: 20px;
-          border-radius: 10px;
-          background: #f9f9f9;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-
-      .suggestions-title {
-          text-align: center;
-          color: #333;
-          margin-bottom: 20px;
-      }
-
-      .suggestions-list {
-          display: flex;
-          flex-direction: column;
-          gap: 15px;
-      }
-
-      .suggestion-card {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 15px;
-          border-radius: 8px;
-          background-color: white;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      .suggestion-details {
-          flex: 1;
-      }
-
-      .suggestion-date,
-      .suggestion-time,
-      .suggestion-message {
-          margin: 5px 0;
-          color: #555;
-      }
-
-      .mark-read-btn {
-          padding: 10px 20px;
-          margin-left: 20px;
-          border: none;
-          border-radius: 5px;
-          background-color: #4CAF50;
-          color: white;
-          cursor: pointer;
-          transition: background-color 0.3s;
-      }
-
-      .mark-read-btn:hover {
-          background-color: #45a049;
-      }
-
-  </style>
 </head>
 <body>
-<div class="modal__container" id="modal-container">
-  <div class="modal__content">
-    <div class="modal__close close-modal" title="Close">
-      <i class='bx bx-x'></i>
+<header class="header">
+  <div class="header__container">
+    <a href="#" class="header__logo">Onwords WorkSpace</a>
+
+    <div class="header__toggle">
+      <i class='bx bx-menu' id="header-toggle"></i>
     </div>
-    <img src="<%= @user_details['profileImage'] %>" alt="Profile Image" class="modal__img">
-    <h1 class="modal__title"><%= @user_details['name'] %></h1>
-    <p class="modal__description"><%= @user_details['mobile'] %></p>
-    <p class="modal__description"><%= @user_details['email'] %></p>
-    <p class="modal__description"><%= Time.at(@user_details['dob'].to_i / 1000).strftime("%d-%m-%Y") %></p>
-    <button class="modal__button modal__button-width">
-      <%= @user_details['department'] %>
-    </button>
+
   </div>
-</div>
+</header>
 
 <div class="nav" id="navbar">
   <nav class="nav__container">
@@ -151,7 +89,7 @@
             <% allowed_departments = %w[ADMIN MANAGEMENT] %>
             <% if allowed_departments.include?(@user_details['department']) %>
               <a href="/notifications" class="nav__link">
-                <i class='bx bx-bell nav__icon active' ></i>
+                <i class='bx bx-bell nav__icon' ></i>
                 <span class="nav__name">Notification</span>
                 <% if @unread_count && @unread_count > 0 %>
                   <span class="nav__notification"><%= @unread_count %></span>
@@ -167,12 +105,19 @@
               </a>
             <% end %>
 
-
             <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
             <% if allowed_departments.include?(@user_details['department']) %>
               <a href="/view_completed_schedules" class="nav__link">
                 <i class='bx bx-message-check nav__icon' ></i>
                 <span class="nav__name">Completion History</span>
+              </a>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/view_buckets" class="nav__link">
+                <i class='bx bx-bar-chart nav__icon active' ></i>
+                <span class="nav__name">Bucket Analytics</span>
               </a>
             <% end %>
 
@@ -184,14 +129,6 @@
                 <span class="nav__notification"><%= total_not_done %></span>
               <% end %>
             </a>
-
-            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
-            <% if allowed_departments.include?(@user_details['department']) %>
-              <a href="/view_buckets" class="nav__link">
-                <i class='bx bx-bar-chart nav__icon' ></i>
-                <span class="nav__name">Bucket Analytics</span>
-              </a>
-            <% end %>
 
             <a href="/calendar" class="nav__link">
               <i class='bx bx-calendar nav__icon'></i>
@@ -213,28 +150,31 @@
   </nav>
 </div>
 
-<main>
-  <section class="suggestions-container">
-    <h1 class="suggestions-title">Suggestions</h1>
-    <div class="suggestions-list">
-      <% suggestions.each do |key, suggestion| %>
-        <% if !suggestion['isread'] %>
-          <div class="suggestion-card">
-            <div class="suggestion-details">
-              <p class="suggestion-date"><strong>Date:</strong> <%= suggestion['date'] %></p>
-              <p class="suggestion-time"><strong>Time:</strong> <%= suggestion['time'] %></p>
-              <p class="suggestion-message"><strong>Message:</strong> <%= suggestion['message'] %></p>
+<main class="main-container">
+  <section class="container">
+    <% @data.each do |name, details| %>
+      <div class="name-row">
+        <div class="name-title"><%= name %></div>
+        <% details.each do |bucket, content| %>
+          <% if bucket.start_with?('Bucket') %>
+            <div class="bucket-item" data-name="<%= name %>" data-bucket="<%= bucket %>">
+              <%= bucket %> Leads - <%= content.keys.size %>
             </div>
-            <button class="mark-read-btn" onclick="markAsRead('<%= key %>')">Mark as Read</button>
-          </div>
+          <% end %>
         <% end %>
-      <% end %>
-    </div>
+      </div>
+    <% end %>
+  </section>
+
+  <section class="chart-container">
+    <div id="selectedBucketInfo" style="text-align: center; margin-bottom: 20px;"></div>
+    <canvas id="chartContainer"></canvas>
   </section>
 </main>
 
 <div class="loader"></div>
 </body>
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         var loader = document.querySelector('.loader');
@@ -256,7 +196,7 @@
 <script>
     const showMenu = (headerToggle, navbarId) =>{
         const toggleBtn = document.getElementById(headerToggle),
-          nav = document.getElementById(navbarId)
+            nav = document.getElementById(navbarId)
 
         if(headerToggle && navbarId){
             toggleBtn.addEventListener('click', ()=>{
@@ -278,7 +218,7 @@
 <script>
     const showModal = (openButton, modalContent) =>{
         const openBtn = document.getElementById(openButton),
-          modalContainer = document.getElementById(modalContent)
+            modalContainer = document.getElementById(modalContent)
 
         if(openBtn && modalContainer){
             openBtn.addEventListener('click', ()=>{
@@ -297,18 +237,43 @@
     closeBtn.forEach(c => c.addEventListener('click', closeModal))
 </script>
 <script>
-    function markAsRead(key) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/mark_as_read', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onload = function() {
-            if (this.status == 200) {
-                location.reload();
-            } else {
-                alert("Failed to mark as read.");
-            }
-        };
-        xhr.send(JSON.stringify({ key: key }));
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const loader = document.querySelector('.loader');
+
+        document.querySelectorAll('.bucket-item').forEach(item => {
+            item.addEventListener('click', function() {
+                loader.style.display = 'block'; // Show loader
+
+                const name = this.getAttribute('data-name');
+                const bucket = this.getAttribute('data-bucket');
+
+                document.getElementById('selectedBucketInfo').innerHTML = `<strong>Selected:</strong> ${name} - ${bucket}`;
+
+                fetch(`/customer_states/${name}/${bucket}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const ctx = document.getElementById('chartContainer').getContext('2d');
+                        if (window.myPieChart) {
+                            window.myPieChart.destroy();
+                        }
+                        window.myPieChart = new Chart(ctx, {
+                            type: 'pie',
+                            data: {
+                                labels: data.map(item => item.state || 'Unknown'),
+                                datasets: [{
+                                    data: data.map(item => item.count),
+                                    backgroundColor: ['red', 'blue', 'green', 'yellow', 'purple', 'orange'],
+                                }]
+                            }
+                        });
+                        loader.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data: ', error);
+                        loader.style.display = 'none';
+                    });
+            });
+        });
+    });
 </script>
 </html>

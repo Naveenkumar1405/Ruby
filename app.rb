@@ -8,10 +8,12 @@ require 'cgi'
 require 'csv'
 require 'httparty'
 
+FIREBASE_URL = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
 FIREBASE_API_KEY = "AIzaSyCCTeiCYTB_npcWKKxl-Oj0StQLTmaFOaE"
 firebase_url = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
 firebase_secret = "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu"
 
+# FIREBASE_URL = "https://onwords-master-db-default-rtdb.firebaseio.com/"
 # FIREBASE_API_KEY = "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI"
 # firebase_url = "https://onwords-master-db-default-rtdb.firebaseio.com/"
 # firebase_secret = "dZ3YsARVGgTLK1IxplfLfNyh5B890uh7DdIhwLzR"
@@ -715,7 +717,17 @@ post '/create_lead' do
             firebase.set("customer/#{phone_number}", lead_details)
           end
 
-          lead_incharge_buckets[LeadIncharge] ||= { bucket_number: 1, counter: 0 }
+          unless lead_incharge_buckets.has_key?(LeadIncharge)
+            last_bucket_info = firebase.get("Bucket/#{LeadIncharge}/Counter").body
+            if last_bucket_info && !last_bucket_info.empty?
+              last_bucket_number = last_bucket_info.keys.max_by { |k| k.match(/\d+/)[0].to_i }
+              last_counter_value = last_bucket_info[last_bucket_number]
+              lead_incharge_buckets[LeadIncharge] = { bucket_number: last_bucket_number.gsub(/[^\d]/, '').to_i, counter: last_counter_value.to_i }
+            else
+              lead_incharge_buckets[LeadIncharge] = { bucket_number: 1, counter: 0 }
+            end
+          end
+
           lead_incharge_bucket = lead_incharge_buckets[LeadIncharge]
 
           if lead_incharge_bucket[:counter] >= 50
@@ -723,8 +735,8 @@ post '/create_lead' do
             lead_incharge_bucket[:counter] = 0
           end
 
-          formatted_bucket_number = format('%02d', lead_incharge_bucket[:bucket_number])
           lead_incharge_bucket[:counter] += 1
+          formatted_bucket_number = format('%02d', lead_incharge_bucket[:bucket_number])
           phone_index = lead_incharge_bucket[:counter]
           formatted_phone_index = format('%02d', phone_index)
 
@@ -1138,4 +1150,65 @@ get '/filter_customers' do
   else
     redirect to('/login')
   end
+end
+
+def fetch_buckets
+  uri = URI("#{FIREBASE_URL}/Bucket.json")
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  request = Net::HTTP::Get.new(uri.request_uri)
+  response = http.request(request)
+  JSON.parse(response.body)
+end
+
+def fetch_customer_state(phone_number)
+  uri = URI("#{FIREBASE_URL}/customer/#{phone_number}.json")
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  request = Net::HTTP::Get.new(uri.request_uri)
+  response = http.request(request)
+  customer_data = JSON.parse(response.body)
+  customer_data["customer_state"] rescue nil
+end
+
+def fetch_buckets_with_customer_states
+  buckets_data = fetch_buckets
+  buckets_data.each do |name, details|
+    details["Bucket01"].each do |key, phone_number|
+      customer_state = fetch_customer_state(phone_number)
+      details["Bucket01"][key] = { "phone_number" => phone_number, "customer_state" => customer_state }
+    end
+  end
+  buckets_data
+end
+
+def get_customer_states_for_name_and_bucket(name, bucket_name)
+  all_states_count = Hash.new(0)
+  buckets_data = fetch_buckets
+
+  if buckets_data.key?(name) && buckets_data[name].key?(bucket_name)
+    buckets_data[name][bucket_name].each do |_, phone_number|
+      customer_state = fetch_customer_state(phone_number)
+      all_states_count[customer_state] += 1 unless customer_state.nil?
+    end
+  end
+
+  all_states_count.map { |state, count| { state: state || "Unknown", count: count } }
+end
+
+get '/view_buckets' do
+  if session[:user_uid]
+    @data = fetch_buckets
+    erb :view_buckets
+  else
+    redirect to('/login')
+  end
+end
+
+get '/customer_states/:name/:bucket' do
+  content_type :json
+  name = params[:name]
+  bucket = params[:bucket]
+  customer_states_data = get_customer_states_for_name_and_bucket(name, bucket)
+  customer_states_data.to_json
 end

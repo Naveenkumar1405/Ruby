@@ -112,6 +112,14 @@
               </a>
             <% end %>
 
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/view_buckets" class="nav__link">
+                <i class='bx bx-bar-chart nav__icon' ></i>
+                <span class="nav__name">Bucket Analytics</span>
+              </a>
+            <% end %>
+
             <a href="/schedules" class="nav__link">
               <i class='bx bx-phone nav__icon'></i>
               <span class="nav__name">Schedules</span>
