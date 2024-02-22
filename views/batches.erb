@@ -106,7 +106,7 @@
             <% allowed_departments = %w[ADMIN MANAGEMENT] %>
             <% if allowed_departments.include?(@user_details['department']) %>
               <a href="/notifications" class="nav__link">
-                <i class='bx bx-bell nav__icon active' ></i>
+                <i class='bx bx-bell nav__icon' ></i>
                 <span class="nav__name">Notification</span>
                 <% if @unread_count && @unread_count > 0 %>
                   <span class="nav__notification"><%= @unread_count %></span>
