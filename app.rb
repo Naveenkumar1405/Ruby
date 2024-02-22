@@ -8,15 +8,15 @@ require 'cgi'
 require 'csv'
 require 'httparty'
 
-FIREBASE_URL = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
-FIREBASE_API_KEY = "AIzaSyCCTeiCYTB_npcWKKxl-Oj0StQLTmaFOaE"
-firebase_url = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
-firebase_secret = "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu"
+# FIREBASE_URL = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
+# FIREBASE_API_KEY = "AIzaSyCCTeiCYTB_npcWKKxl-Oj0StQLTmaFOaE"
+# firebase_url = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
+# firebase_secret = "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu"
 
-# FIREBASE_URL = "https://onwords-master-db-default-rtdb.firebaseio.com/"
-# FIREBASE_API_KEY = "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI"
-# firebase_url = "https://onwords-master-db-default-rtdb.firebaseio.com/"
-# firebase_secret = "dZ3YsARVGgTLK1IxplfLfNyh5B890uh7DdIhwLzR"
+FIREBASE_URL = "https://onwords-master-db-default-rtdb.firebaseio.com/"
+FIREBASE_API_KEY = "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI"
+firebase_url = "https://onwords-master-db-default-rtdb.firebaseio.com/"
+firebase_secret = "dZ3YsARVGgTLK1IxplfLfNyh5B890uh7DdIhwLzR"
 
 firebase = Firebase::Client.new(firebase_url, firebase_secret)
 
@@ -26,13 +26,13 @@ set :port, 8080
 set :public_folder, 'public'
 enable :sessions
 
-def firebase
-  @firebase ||= Firebase::Client.new("https://marketing-data-d141d-default-rtdb.firebaseio.com/", "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu")
-end
-
 # def firebase
-#   @firebase ||= Firebase::Client.new("https://onwords-master-db-default-rtdb.firebaseio.com/", "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI")
+#   @firebase ||= Firebase::Client.new("https://marketing-data-d141d-default-rtdb.firebaseio.com/", "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu")
 # end
+
+def firebase
+  @firebase ||= Firebase::Client.new("https://onwords-master-db-default-rtdb.firebaseio.com/", "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI")
+end
 
 error do
   redirect to('/not_found')
@@ -1152,6 +1152,15 @@ get '/filter_customers' do
   end
 end
 
+get '/view_buckets' do
+  if session[:user_uid]
+    @data = fetch_buckets
+    erb :view_buckets
+  else
+    redirect to('/login')
+  end
+end
+
 def fetch_buckets
   uri = URI("#{FIREBASE_URL}/Bucket.json")
   http = Net::HTTP.new(uri.host, uri.port)
@@ -1196,15 +1205,6 @@ def get_customer_states_for_name_and_bucket(name, bucket_name)
   all_states_count.map { |state, count| { state: state || "Unknown", count: count } }
 end
 
-get '/view_buckets' do
-  if session[:user_uid]
-    @data = fetch_buckets
-    erb :view_buckets
-  else
-    redirect to('/login')
-  end
-end
-
 get '/customer_states/:name/:bucket' do
   content_type :json
   name = params[:name]
@@ -1212,3 +1212,47 @@ get '/customer_states/:name/:bucket' do
   customer_states_data = get_customer_states_for_name_and_bucket(name, bucket)
   customer_states_data.to_json
 end
+
+def fetch_and_aggregate_all_buckets(name)
+  buckets_data = fetch_buckets[name] || {}
+  aggregated_states = {}
+
+  buckets_data.each do |bucket_name, customer_numbers|
+    next if bucket_name == "Counter" # Skip "Counter" or any non-bucket data as needed
+
+    customer_numbers.each do |customer_number|
+      state = fetch_customer_state(customer_number)
+      next unless state
+
+      # Initialize bucket in hash if it doesn't exist
+      aggregated_states[bucket_name] ||= Hash.new(0)
+      # Increment state count for the bucket
+      aggregated_states[bucket_name][state] += 1
+    end
+  end
+
+  aggregated_states
+end
+
+
+get '/performance_tables' do
+  @data = fetch_buckets
+  erb :performance_tables
+end
+
+get '/customer_states_all_buckets/:name' do
+  content_type :json
+  name = params[:name]
+  all_buckets_states_data = fetch_and_aggregate_all_buckets(name)
+  puts all_buckets_states_data.inspect # Temporarily log output for debugging
+  all_buckets_states_data.to_json
+end
+
+# get '/view_buckets' do
+#   if session[:user_uid]
+#     @data = fetch_buckets
+#     erb :performance_tables
+#   else
+#     redirect to('/login')
+#   end
+# end

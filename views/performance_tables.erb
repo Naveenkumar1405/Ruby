@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/buckets.css">
+  <link rel="icon" type="image/x-icon" href="/img/fav.png">
+  <title>Onwords WorkSpace</title>
+</head>
+<body>
+
+<main class="main-container">
+  <section class="container">
+    <% @data.each do |name, details| %>
+      <div class="name-row">
+        <!-- Make each name a clickable button -->
+        <button class="name-title" data-name="<%= name %>"><%= name %></button>
+      </div>
+    <% end %>
+  </section>
+
+  <section class="chart-container">
+    <div id="selectedBucketInfo" style="text-align: center; margin-bottom: 20px;"></div>
+    <div id="stateList"></div>
+  </section>
+</main>
+
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.name-title').forEach(item => {
+            item.addEventListener('click', function() {
+                const loader = document.querySelector('.loader');
+                loader.style.display = 'block';
+
+                const name = this.getAttribute('data-name');
+
+                // Updated endpoint to fetch all buckets for a given incharge name
+                fetch(`/customer_states_all_buckets/${name}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tableContainer = document.getElementById('stateList');
+                        tableContainer.innerHTML = '';
+                        let tableHTML = '<table><thead><tr><th>State</th>';
+
+                        // Assuming the first bucket contains all possible states
+                        Object.keys(data).forEach(bucket => {
+                            tableHTML += `<th>${bucket}</th>`;
+                        });
+                        tableHTML += '</tr></thead><tbody>';
+
+                        // Assuming 'data' is structured with states as keys and bucket counts as values
+                        Object.keys(data[Object.keys(data)[0]]).forEach(state => {
+                            tableHTML += `<tr><td>${state}</td>`;
+                            Object.keys(data).forEach(bucket => {
+                                tableHTML += `<td>${data[bucket][state] || 0}</td>`;
+                            });
+                            tableHTML += `</tr>`;
+                        });
+
+                        tableHTML += '</tbody></table>';
+                        tableContainer.innerHTML = tableHTML;
+
+                        loader.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data: ', error);
+                        loader.style.display = 'none';
+                    });
+            });
+        });
+    });
+</script>
+</html>
