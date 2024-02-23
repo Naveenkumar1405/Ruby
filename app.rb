@@ -711,8 +711,7 @@ post '/create_lead' do
         begin
           existing_lead = firebase.get("customer/#{phone_number}").body
           if existing_lead
-            updated_lead_details = existing_lead.merge(lead_details)
-            firebase.update("customer/#{phone_number}", updated_lead_details)
+            firebase.set("Existing_customer/#{phone_number}", existing_lead)
           else
             firebase.set("customer/#{phone_number}", lead_details)
           end
