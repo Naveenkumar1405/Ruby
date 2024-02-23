@@ -1172,7 +1172,7 @@ def fetch_customer_state(phone_number)
   uri = URI("#{FIREBASE_URL}/customer/#{URI.encode_www_form_component(phone_number)}.json")
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
-  http.read_timeout = 10
+  http.read_timeout = 100
   request = Net::HTTP::Get.new(uri.request_uri)
 
   begin
