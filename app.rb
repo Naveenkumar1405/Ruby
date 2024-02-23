@@ -8,15 +8,15 @@ require 'cgi'
 require 'csv'
 require 'httparty'
 
-# FIREBASE_URL = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
-# FIREBASE_API_KEY = "AIzaSyCCTeiCYTB_npcWKKxl-Oj0StQLTmaFOaE"
-# firebase_url = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
-# firebase_secret = "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu"
+FIREBASE_URL = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
+FIREBASE_API_KEY = "AIzaSyCCTeiCYTB_npcWKKxl-Oj0StQLTmaFOaE"
+firebase_url = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
+firebase_secret = "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu"
 
-FIREBASE_URL = "https://onwords-master-db-default-rtdb.firebaseio.com/"
-FIREBASE_API_KEY = "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI"
-firebase_url = "https://onwords-master-db-default-rtdb.firebaseio.com/"
-firebase_secret = "dZ3YsARVGgTLK1IxplfLfNyh5B890uh7DdIhwLzR"
+# FIREBASE_URL = "https://onwords-master-db-default-rtdb.firebaseio.com/"
+# FIREBASE_API_KEY = "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI"
+# firebase_url = "https://onwords-master-db-default-rtdb.firebaseio.com/"
+# firebase_secret = "dZ3YsARVGgTLK1IxplfLfNyh5B890uh7DdIhwLzR"
 
 firebase = Firebase::Client.new(firebase_url, firebase_secret)
 
@@ -26,13 +26,13 @@ set :port, 8080
 set :public_folder, 'public'
 enable :sessions
 
-# def firebase
-#   @firebase ||= Firebase::Client.new("https://marketing-data-d141d-default-rtdb.firebaseio.com/", "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu")
-# end
-
 def firebase
-  @firebase ||= Firebase::Client.new("https://onwords-master-db-default-rtdb.firebaseio.com/", "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI")
+  @firebase ||= Firebase::Client.new("https://marketing-data-d141d-default-rtdb.firebaseio.com/", "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu")
 end
+
+# def firebase
+#   @firebase ||= Firebase::Client.new("https://onwords-master-db-default-rtdb.firebaseio.com/", "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI")
+# end
 
 error do
   redirect to('/not_found')
@@ -1118,7 +1118,6 @@ get '/get_customers_by_batch' do
         end
       end
       @months = @month_counts.keys.sort
-
       erb :batches
     else
       status 404
@@ -1141,7 +1140,6 @@ get '/filter_customers' do
         next if customer['created_date'].nil?
         customer['created_date'][0..6] == batch && customer['LeadIncharge'] == incharge_uid
       end
-
       filtered_customers.to_json
     else
       status 404
@@ -1167,17 +1165,29 @@ def fetch_buckets
   http.use_ssl = true
   request = Net::HTTP::Get.new(uri.request_uri)
   response = http.request(request)
-  JSON.parse(response.body)
+  buckets_data = JSON.parse(response.body)
+  buckets_data
 end
 
 def fetch_customer_state(phone_number)
-  uri = URI("#{FIREBASE_URL}/customer/#{phone_number}.json")
+  uri = URI("#{FIREBASE_URL}/customer/#{URI.encode_www_form_component(phone_number)}.json")
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
+  http.read_timeout = 10
   request = Net::HTTP::Get.new(uri.request_uri)
-  response = http.request(request)
-  customer_data = JSON.parse(response.body)
-  customer_data["customer_state"] rescue nil
+
+  begin
+    response = http.request(request)
+    case response
+    when Net::HTTPSuccess
+      customer_data = JSON.parse(response.body)
+      customer_data["customer_state"]
+    else
+      nil
+    end
+  rescue
+    nil
+  end
 end
 
 def fetch_buckets_with_customer_states
@@ -1201,7 +1211,6 @@ def get_customer_states_for_name_and_bucket(name, bucket_name)
       all_states_count[customer_state] += 1 unless customer_state.nil?
     end
   end
-
   all_states_count.map { |state, count| { state: state || "Unknown", count: count } }
 end
 
@@ -1217,42 +1226,30 @@ def fetch_and_aggregate_all_buckets(name)
   buckets_data = fetch_buckets[name] || {}
   aggregated_states = {}
 
-  buckets_data.each do |bucket_name, customer_numbers|
-    next if bucket_name == "Counter" # Skip "Counter" or any non-bucket data as needed
-
-    customer_numbers.each do |customer_number|
-      state = fetch_customer_state(customer_number)
+  buckets_data.each do |bucket_name, customers|
+    next if bucket_name == "Counter"
+    customers.each do |_, phone_number|
+      state = fetch_customer_state(phone_number)
       next unless state
-
-      # Initialize bucket in hash if it doesn't exist
       aggregated_states[bucket_name] ||= Hash.new(0)
-      # Increment state count for the bucket
       aggregated_states[bucket_name][state] += 1
     end
   end
-
   aggregated_states
 end
 
-
 get '/performance_tables' do
-  @data = fetch_buckets
-  erb :performance_tables
+  if session[:user_uid]
+    @data = fetch_buckets
+    erb :performance_tables
+  else
+    redirect to('/login')
+  end
 end
 
 get '/customer_states_all_buckets/:name' do
   content_type :json
   name = params[:name]
   all_buckets_states_data = fetch_and_aggregate_all_buckets(name)
-  puts all_buckets_states_data.inspect # Temporarily log output for debugging
   all_buckets_states_data.to_json
 end
-
-# get '/view_buckets' do
-#   if session[:user_uid]
-#     @data = fetch_buckets
-#     erb :performance_tables
-#   else
-#     redirect to('/login')
-#   end
-# end

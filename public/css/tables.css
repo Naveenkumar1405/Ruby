@@ -1,0 +1,38 @@
+.main-container { padding: 20px; }
+.name-row { margin-bottom: 10px; }
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+    justify-content: start;
+}
+.name-title {
+    background-color: #f6be06;
+    color: #000000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+}
+.name-title:hover { background-color: #f5a807; }
+.loader {
+    animation: spin 2s linear infinite;
+    display: none;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+tr:nth-child(even) { background-color: #f2f2f2; }
