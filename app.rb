@@ -695,6 +695,7 @@ post '/create_lead' do
   }
 
   added_numbers = []
+  existing_numbers = []
   error_messages = []
   lead_incharge_buckets = {}
 
@@ -712,8 +713,10 @@ post '/create_lead' do
           existing_lead = firebase.get("customer/#{phone_number}").body
           if existing_lead
             firebase.set("Existing_customer/#{phone_number}", lead_details)
+            existing_numbers.push(phone_number)
           else
             firebase.set("customer/#{phone_number}", lead_details)
+            added_numbers.push(phone_number)
           end
 
           unless lead_incharge_buckets.has_key?(LeadIncharge)
@@ -756,6 +759,9 @@ post '/create_lead' do
     message = ""
     if added_numbers.any?
       message += "Successfully created/updated leads for phone numbers: #{added_numbers.join(', ')}. "
+    end
+    if existing_numbers.any?
+      message += "Existing numbers updated in Existing_Customer node: #{existing_numbers.join(', ')}. "
     end
     if error_messages.any?
       message += "Errors: #{error_messages.join(' ')}"
