@@ -44,7 +44,7 @@
                 <a href="/create_lead" class="nav__dropdown-item">Create Lead</a>
                 <% allowed_departments = %w[ADMIN BRAVO] %>
                 <% if allowed_departments.include?(@user_details['department']) %>
-                  <a href="/bulk_assign" class="nav__dropdown-item">Bulk Assign</a>
+                  <a href="/bulk_assign" class="nav__dropdown-item active">Bulk Assign</a>
                 <% end %>
                 <a href="/my_clients" class="nav__dropdown-item">My Clients</a>
               </div>
@@ -116,9 +116,25 @@
 
             <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
             <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/batch" class="nav__link">
+                <i class='bx bx-data nav__icon' ></i>
+                <span class="nav__name">Batch View</span>
+              </a>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
               <a href="/view_buckets" class="nav__link">
                 <i class='bx bx-bar-chart nav__icon' ></i>
                 <span class="nav__name">Bucket Analytics</span>
+              </a>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/performance_tables" class="nav__link">
+                <i class='bx bx-stats nav__icon' ></i>
+                <span class="nav__name">TC Performance</span>
               </a>
             <% end %>
 

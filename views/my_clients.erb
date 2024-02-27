@@ -49,7 +49,7 @@
                 <% if allowed_departments.include?(@user_details['department']) %>
                   <a href="/bulk_assign" class="nav__dropdown-item">Bulk Assign</a>
                 <% end %>
-                <a href="/my_clients" class="nav__dropdown-item">My Clients</a>
+                <a href="/my_clients" class="nav__dropdown-item active">My Clients</a>
               </div>
             </div>
           </div>
@@ -117,14 +117,13 @@
               </a>
             <% end %>
 
-            <a href="/schedules" class="nav__link">
-              <i class='bx bx-phone nav__icon'></i>
-              <span class="nav__name">Schedules</span>
-              <% total_not_done = @not_done_calls %>
-              <% if total_not_done > 0 %>
-                <span class="nav__notification"><%= total_not_done %></span>
-              <% end %>
-            </a>
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/batch" class="nav__link">
+                <i class='bx bx-data nav__icon' ></i>
+                <span class="nav__name">Batch View</span>
+              </a>
+            <% end %>
 
             <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
             <% if allowed_departments.include?(@user_details['department']) %>
@@ -133,6 +132,23 @@
                 <span class="nav__name">Bucket Analytics</span>
               </a>
             <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/performance_tables" class="nav__link">
+                <i class='bx bx-stats nav__icon' ></i>
+                <span class="nav__name">TC Performance</span>
+              </a>
+            <% end %>
+
+            <a href="/schedules" class="nav__link">
+              <i class='bx bx-phone nav__icon'></i>
+              <span class="nav__name">Schedules</span>
+              <% total_not_done = @not_done_calls %>
+              <% if total_not_done > 0 %>
+                <span class="nav__notification"><%= total_not_done %></span>
+              <% end %>
+            </a>
 
             <a href="/calendar" class="nav__link">
               <i class='bx bx-calendar nav__icon'></i>
@@ -153,6 +169,7 @@
     </div>
   </nav>
 </div>
+
 <main>
   <section>
 

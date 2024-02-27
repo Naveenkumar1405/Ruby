@@ -104,11 +104,20 @@
               </a>
             <% end %>
 
+
             <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
             <% if allowed_departments.include?(@user_details['department']) %>
               <a href="/view_completed_schedules" class="nav__link">
                 <i class='bx bx-message-check nav__icon' ></i>
                 <span class="nav__name">Completion History</span>
+              </a>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/batch" class="nav__link">
+                <i class='bx bx-data nav__icon' ></i>
+                <span class="nav__name">Batch View</span>
               </a>
             <% end %>
 
@@ -122,8 +131,8 @@
 
             <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
             <% if allowed_departments.include?(@user_details['department']) %>
-              <a href="/performance_tables" class="nav__link">
-                <i class='bx bx-stats nav__icon active' ></i>
+              <a href="/performance_tables" class="nav__link active">
+                <i class='bx bx-stats nav__icon' ></i>
                 <span class="nav__name">TC Performance</span>
               </a>
             <% end %>
@@ -156,7 +165,6 @@
     </div>
   </nav>
 </div>
-
 <main class="main-container">
   <section class="container">
     <div class="name-row">

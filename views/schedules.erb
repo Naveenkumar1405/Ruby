@@ -107,7 +107,7 @@
             <% allowed_departments = %w[ADMIN MANAGEMENT] %>
             <% if allowed_departments.include?(@user_details['department']) %>
               <a href="/notifications" class="nav__link">
-                <i class='bx bx-bell nav__icon active' ></i>
+                <i class='bx bx-bell nav__icon' ></i>
                 <span class="nav__name">Notification</span>
                 <% if @unread_count && @unread_count > 0 %>
                   <span class="nav__notification"><%= @unread_count %></span>
@@ -134,13 +134,29 @@
 
             <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
             <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/batch" class="nav__link">
+                <i class='bx bx-data nav__icon' ></i>
+                <span class="nav__name">Batch View</span>
+              </a>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
               <a href="/view_buckets" class="nav__link">
                 <i class='bx bx-bar-chart nav__icon' ></i>
                 <span class="nav__name">Bucket Analytics</span>
               </a>
             <% end %>
 
-            <a href="/schedules" class="nav__link">
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/performance_tables" class="nav__link">
+                <i class='bx bx-stats nav__icon' ></i>
+                <span class="nav__name">TC Performance</span>
+              </a>
+            <% end %>
+
+            <a href="/schedules" class="nav__link active">
               <i class='bx bx-phone nav__icon'></i>
               <span class="nav__name">Schedules</span>
               <% total_not_done = @not_done_calls %>
