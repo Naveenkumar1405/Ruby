@@ -719,34 +719,22 @@ post '/create_lead' do
             added_numbers.push(phone_number)
           end
 
-          unless lead_incharge_buckets.has_key?(LeadIncharge)
-            last_bucket_info = firebase.get("Bucket/#{LeadIncharge}/Counter").body
-            if last_bucket_info && !last_bucket_info.empty?
-              last_bucket_number = last_bucket_info.keys.max_by { |k| k.match(/\d+/)[0].to_i }
-              last_counter_value = last_bucket_info[last_bucket_number]
-              lead_incharge_buckets[LeadIncharge] = { bucket_number: last_bucket_number.gsub(/[^\d]/, '').to_i, counter: last_counter_value.to_i }
-            else
-              lead_incharge_buckets[LeadIncharge] = { bucket_number: 1, counter: 0 }
-            end
+          counters = firebase.get("Buckets/#{LeadIncharge}/Counter").body || {}
+          if counters.empty?
+            bucket_name = "Bucket1"
+            counters[bucket_name] = 0
+          else
+            bucket_name = counters.keys.sort_by { |k| k[/\d+/].to_i }.last
           end
 
-          lead_incharge_bucket = lead_incharge_buckets[LeadIncharge]
-
-          if lead_incharge_bucket[:counter] >= 50
-            lead_incharge_bucket[:bucket_number] += 1
-            lead_incharge_bucket[:counter] = 0
+          if counters[bucket_name] >= 50
+            bucket_name = "Bucket#{bucket_name[/\d+/].to_i + 1}"
+            counters[bucket_name] = 0
           end
 
-          lead_incharge_bucket[:counter] += 1
-          formatted_bucket_number = format('%02d', lead_incharge_bucket[:bucket_number])
-          phone_index = lead_incharge_bucket[:counter]
-          formatted_phone_index = format('%02d', phone_index)
-
-          bucket_counter_key = "Bucket/#{LeadIncharge}/Counter/Bucket#{formatted_bucket_number}"
-          firebase.set(bucket_counter_key, phone_index)
-
-          bucket_key = "Bucket/#{LeadIncharge}/Bucket#{formatted_bucket_number}/#{formatted_phone_index}"
-          firebase.set(bucket_key, phone_number)
+          counters[bucket_name] += 1
+          firebase.set("Buckets/#{LeadIncharge}/Counter/#{bucket_name}", counters[bucket_name])
+          firebase.set("Buckets/#{LeadIncharge}/#{bucket_name}/#{phone_number}", {"state" => "New leads"})
           added_numbers.push(phone_number)
         rescue => e
           error_messages.push("Error with phone number #{phone_number}: #{e.message}")
