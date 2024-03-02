@@ -1157,66 +1157,15 @@ end
 
 get '/view_buckets' do
   if session[:user_uid]
-    @data = fetch_buckets
+    response = firebase.get('Buckets')
+    if response.success?
+      @buckets_data = response.body
+    else
+      end
     erb :view_buckets
   else
     redirect to('/login')
   end
-end
-
-def fetch_buckets
-  uri = URI("#{FIREBASE_URL}/Bucket.json")
-  http = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = true
-  request = Net::HTTP::Get.new(uri.request_uri)
-  response = http.request(request)
-  buckets_data = JSON.parse(response.body)
-  buckets_data
-end
-
-def fetch_customer_state(phone_number)
-  uri = URI("#{FIREBASE_URL}/customer/#{URI.encode_www_form_component(phone_number)}.json")
-  http = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = true
-  http.read_timeout = 100
-  request = Net::HTTP::Get.new(uri.request_uri)
-
-  begin
-    response = http.request(request)
-    case response
-    when Net::HTTPSuccess
-      customer_data = JSON.parse(response.body)
-      customer_data["customer_state"]
-    else
-      nil
-    end
-  rescue
-    nil
-  end
-end
-
-def fetch_buckets_with_customer_states
-  buckets_data = fetch_buckets
-  buckets_data.each do |name, details|
-    details["Bucket01"].each do |key, phone_number|
-      customer_state = fetch_customer_state(phone_number)
-      details["Bucket01"][key] = { "phone_number" => phone_number, "customer_state" => customer_state }
-    end
-  end
-  buckets_data
-end
-
-def get_customer_states_for_name_and_bucket(name, bucket_name)
-  all_states_count = Hash.new(0)
-  buckets_data = fetch_buckets
-
-  if buckets_data.key?(name) && buckets_data[name].key?(bucket_name)
-    buckets_data[name][bucket_name].each do |_, phone_number|
-      customer_state = fetch_customer_state(phone_number)
-      all_states_count[customer_state] += 1 unless customer_state.nil?
-    end
-  end
-  all_states_count.map { |state, count| { state: state || "Unknown", count: count } }
 end
 
 get '/customer_states/:name/:bucket' do
@@ -1227,20 +1176,48 @@ get '/customer_states/:name/:bucket' do
   customer_states_data.to_json
 end
 
-def fetch_and_aggregate_all_buckets(name)
-  buckets_data = fetch_buckets[name] || {}
-  aggregated_states = {}
+def get_customer_states_for_name_and_bucket(name, bucket_name)
+  all_states_count = Hash.new(0)
+  response = firebase.get("Buckets/#{name}/#{bucket_name}")
+  if response.success? && response.body
+    phone_numbers_data = response.body
+    if phone_numbers_data.is_a?(Hash)
+      phone_numbers_data.each do |phone_number, details|
+        state = details["state"]
+        all_states_count[state] += 1 unless state.nil?
+      end
+    end
+  else
+    puts "Failed to fetch data or data not found for #{name}/#{bucket_name}"
+  end
+  all_states_count.map { |state, count| { state: state || "Unknown", count: count } }
+end
 
-  buckets_data.each do |bucket_name, customers|
-    next if bucket_name == "Counter"
-    customers.each do |_, phone_number|
-      state = fetch_customer_state(phone_number)
-      next unless state
-      aggregated_states[bucket_name] ||= Hash.new(0)
-      aggregated_states[bucket_name][state] += 1
+def fetch_and_aggregate_all_buckets(name)
+  all_states_count = {}
+  response = firebase.get("Buckets/#{name}")
+  if response.success? && response.body
+    buckets_data = response.body
+    buckets_data.each do |bucket_name, phone_numbers|
+      next if bucket_name == "Counter" || !phone_numbers.is_a?(Hash)
+      all_states_count[bucket_name] ||= Hash.new(0)
+      phone_numbers.each do |_, details|
+        state = details["state"]
+        all_states_count[bucket_name][state] += 1
+      end
     end
   end
-  aggregated_states
+  all_states_count
+end
+
+def fetch_buckets
+  uri = URI("#{FIREBASE_URL}/Bucket.json")
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  request = Net::HTTP::Get.new(uri.request_uri)
+  response = http.request(request)
+  buckets_data = JSON.parse(response.body)
+  buckets_data
 end
 
 get '/performance_tables' do
