@@ -168,12 +168,13 @@
 
 <main class="main-container">
   <section class="container">
-    <div class="name-row">
-      <% @data.each do |name, details| %>
+    <!-- Name containers -->
+    <% @data.each do |name, details| %>
+      <div class="name-row">
         <!-- Make each name a clickable button -->
         <button class="name-title" data-name="<%= name %>"><%= name %></button>
-      <% end %>
-    </div>
+      </div>
+    <% end %>
   </section>
 
   <section class="chart-container">
