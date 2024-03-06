@@ -53,8 +53,32 @@ td {
     border: 1px solid #dddddd;
     text-align: left;
     padding: 8px;
+    position: sticky;
+    background-color: #FFF;
 }
 
 tr:nth-child(even) {
     background-color: #f2f2f2;
+}
+
+th:first-child, td:first-child {
+    left: 68px;
+    z-index: 1;
+}
+
+.toggle-buckets-button {
+    background-color: #000000;
+    color: #f1d104;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    transition: background-color 0.3s;
+}
+
+.toggle-buckets-button:hover {
+    background-color: #f1d104;
+    color: black;
 }

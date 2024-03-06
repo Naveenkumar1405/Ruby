@@ -46,7 +46,7 @@
       <div class="nav__list">
         <div class="nav__items">
 
-          <a href="/" class="nav__link active">
+          <a href="/" class="nav__link">
             <i class='bx bx-home nav__icon'></i>
             <span class="nav__name">Home</span>
           </a>
@@ -133,7 +133,7 @@
 
             <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT PR] %>
             <% if allowed_departments.include?(@user_details['department']) %>
-              <a href="/batch" class="nav__link">
+              <a href="/batch" class="nav__link active">
                 <i class='bx bx-data nav__icon' ></i>
                 <span class="nav__name">Batch View</span>
               </a>
@@ -211,7 +211,19 @@
       <tr>
         <th>Name</th>
         <th>Phone</th>
-        <th>Status</th>
+        <th>Status
+          <select id="status-filter" onchange="filterCustomersByStatus()">
+            <option value="">Select Status</option>
+            <option value="Rejected from MGMT">Rejected from MGMT</option>
+            <option value="B2B">In B2B</option>
+            <option value="Visited">Visited</option>
+            <option value="Installation Completed">Installation Completed</option>
+            <option value="Under Construction">Under Construction</option>
+            <option value="Delayed">Delayed</option>
+            <option value="Hot lead">Hot lead</option>
+            <option value="need to visit">Need to visit</option>
+          </select>
+        </th>
         <th>Enquired For</th>
         <th>In-charge</th>
       </tr>
@@ -233,15 +245,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 <script>
-    function filterCustomersByIncharge() {
-        var inchargeUid = document.getElementById('incharge-dropdown').value;
-        var batch = '<%= params['batch'] %>';
+    function filterCustomersByStatus() {
+        const status = document.getElementById('status-filter').value;
+        const batch = '<%= params['batch'] %>';
 
-        fetch(`/filter_customers?batch=${batch}&incharge=${inchargeUid}`)
-            .then(response => response.json())
-            .then(customers => {
-            })
-            .catch(error => console.error('Error:', error));
+        window.location.href = `/get_customers_by_batch?batch=${batch}&status=${status}`;
     }
 </script>
 <script>
@@ -298,7 +306,6 @@
             }
         });
     }
-
 </script>
 <script>
     function loadCustomersByBatch(batch) {

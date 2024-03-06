@@ -238,32 +238,52 @@
                 fetch(`/customer_states_all_buckets/${name}`)
                     .then(response => response.json())
                     .then(data => {
+                        const allBuckets = Object.keys(data).sort((a, b) => {
+                            // Assuming bucket names end with numbers and can be sorted numerically
+                            return parseInt(a.match(/\d+$/)[0], 10) - parseInt(b.match(/\d+$/)[0], 10);
+                        });
+                        const totalBuckets = allBuckets.length;
+                        const targetBuckets = allBuckets.slice(-6); // Adjust this to fetch the last 6 buckets dynamically
                         const tableContainer = document.getElementById('stateList');
                         if (tableContainer) {
                             let tableHTML = '<table><thead><tr><th>State</th>';
-                            const buckets = Object.keys(data);
-                            buckets.forEach(bucket => {
-                                tableHTML += `<th>${bucket}</th>`;
+                            allBuckets.forEach(bucket => {
+                                const isVisible = targetBuckets.includes(bucket);
+                                tableHTML += `<th${isVisible ? '' : ' class="hidden-bucket" style="display: none;"'}>${bucket}</th>`;
                             });
-                            tableHTML += `<th>Average</th></tr></thead><tbody>`;
+                            tableHTML += '<th>Average</th></tr></thead><tbody>';
 
                             const states = new Set();
-                            buckets.forEach(bucket => Object.keys(data[bucket]).forEach(state => states.add(state)));
+                            allBuckets.forEach(bucket => Object.keys(data[bucket]).forEach(state => states.add(state)));
 
                             states.forEach(state => {
                                 let total = 0;
+                                let visibleCount = 0;
                                 tableHTML += `<tr><td>${state}</td>`;
-                                buckets.forEach(bucket => {
+                                allBuckets.forEach(bucket => {
                                     const count = data[bucket][state] || 0;
-                                    tableHTML += `<td>${count}</td>`;
                                     total += count;
+                                    if (targetBuckets.includes(bucket)) {
+                                        visibleCount += 1;
+                                        tableHTML += `<td>${count}</td>`;
+                                    } else {
+                                        tableHTML += `<td class="hidden-bucket" style="display: none;">${count}</td>`;
+                                    }
                                 });
-                                const average = total / buckets.length;
+                                const average = total / visibleCount;
                                 tableHTML += `<td>${average.toFixed(2)}</td></tr>`;
                             });
 
                             tableHTML += '</tbody></table>';
+                            tableHTML += '<button id="toggleBuckets" class="toggle-buckets-button">Show All Buckets</button>';
                             tableContainer.innerHTML = tableHTML;
+
+                            document.getElementById('toggleBuckets').addEventListener('click', function() {
+                                document.querySelectorAll('.hidden-bucket').forEach(cell => {
+                                    cell.style.display = cell.style.display === 'none' ? '' : 'none';
+                                });
+                                this.textContent = this.textContent === 'Show All Buckets' ? 'Show Less Buckets' : 'Show All Buckets';
+                            });
                         }
                         if (loader) {
                             loader.style.display = 'none';

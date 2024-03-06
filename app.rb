@@ -1089,6 +1089,7 @@ get '/get_customers_by_batch' do
     batch = params['batch']
     response = firebase.get('customer')
     staff_response = firebase.get('staff_details')
+    status_filter = params['status']
 
     if response.success?
       customers = response.body.values
@@ -1096,7 +1097,9 @@ get '/get_customers_by_batch' do
       @staff_names = all_staff.select { |_uid, details| details['department'] == 'PR' }.map { |_uid, details| [details['name'], _uid] }
       @customers = customers.select do |customer|
         next if customer['created_date'].nil?
-        customer['created_date'][0..6] == batch
+        matches_batch = customer['created_date'][0..6] == batch
+        matches_status = status_filter.nil? || status_filter.empty? || customer['customer_state'] == status_filter
+        matches_batch && matches_status
       end
 
       @months = []
