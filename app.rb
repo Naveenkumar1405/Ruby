@@ -670,96 +670,75 @@ get '/create_lead' do
 end
 
 post '/create_lead' do
-  content_type :text
-  uid = session[:user_uid]
-  user_details = get_staff_details(uid)
-  LeadIncharge = params[:lead_incharge].empty? ? "Not Assigned" : params[:lead_incharge]
+  content_type :json
 
   unless params[:file] && params[:file][:tempfile] && params[:file][:filename]
-    return "No file selected!"
+    return { error: "No file selected!" }.to_json
   end
+
+  uid = session[:user_uid]
+  user_details = get_staff_details(uid) || { 'name' => "Unknown" }
+  lead_incharge = params[:lead_incharge].to_s.empty? ? "Not Assigned" : params[:lead_incharge]
 
   file = params[:file][:tempfile]
   inquired_for = params[:EnquiredFor]
 
-  current_date = Date.today.to_s
-  current_time = Time.now.strftime("%H:%M:%S")
-
   default_values = {
-    "created_by" => user_details ? user_details['name'] : "Unknown",
-    "created_date" => current_date,
-    "created_time" => current_time,
+    "created_by" => user_details['name'],
+    "created_date" => Date.today.to_s,
+    "created_time" => Time.now.strftime("%H:%M:%S"),
     "customer_state" => "New leads",
-    "LeadIncharge" => LeadIncharge,
+    "LeadIncharge" => lead_incharge,
     "inquired_for" => inquired_for
   }
 
-  added_numbers = []
-  existing_numbers = []
-  error_messages = []
-  lead_incharge_buckets = {}
+  added_numbers, existing_numbers, error_messages = [], [], []
 
   begin
-    file_contents = file.read.encode("UTF-8", "binary", invalid: :replace, undef: :replace, replace: '')
-    file_contents.gsub!("\r", "\n")
-
+    file_contents = file.read.encode("UTF-8", "binary", invalid: :replace, undef: :replace, replace: '').gsub("\r", "\n")
     CSV.parse(file_contents, headers: true, liberal_parsing: true) do |row|
       lead_details = row.to_hash.merge(default_values)
-      lead_details['phone_number'] = lead_details['phone_number'].to_s.gsub('p:', '').gsub('+91', '') if lead_details['phone_number']
-      phone_number = lead_details['phone_number']
+      phone_number = lead_details['phone_number'].to_s.gsub('p:', '').gsub('+91', '')
 
-      if phone_number && !phone_number.empty?
-        begin
-          existing_lead = firebase.get("customer/#{phone_number}").body
-          if existing_lead
-            firebase.set("Existing_customer/#{phone_number}", lead_details)
-            existing_numbers.push(phone_number)
-          else
-            firebase.set("customer/#{phone_number}", lead_details)
-            added_numbers.push(phone_number)
-          end
-
-          counters = firebase.get("Buckets/#{LeadIncharge}/Counter").body || {}
-          if counters.empty?
-            bucket_name = "Bucket1"
-            counters[bucket_name] = 0
-          else
-            bucket_name = counters.keys.sort_by { |k| k[/\d+/].to_i }.last
-          end
-
-          if counters[bucket_name] >= 50
-            bucket_name = "Bucket#{bucket_name[/\d+/].to_i + 1}"
-            counters[bucket_name] = 0
-          end
-
-          counters[bucket_name] += 1
-          firebase.set("Buckets/#{LeadIncharge}/Counter/#{bucket_name}", counters[bucket_name])
-          firebase.set("Buckets/#{LeadIncharge}/#{bucket_name}/#{phone_number}", {"state" => "New leads"})
-          added_numbers.push(phone_number)
-        rescue => e
-          error_messages.push("Error with phone number #{phone_number}: #{e.message}")
-        end
-      else
-        error_messages.push("Invalid or empty phone number at row: #{row.inspect}")
+      if phone_number.empty?
+        error_messages << "Invalid or empty phone number at row: #{row.inspect}"
+        next
       end
+
+      existing_lead = firebase.get("customer/#{phone_number}").body
+      target_path = existing_lead ? "Existing_customer/#{phone_number}" : "customer/#{phone_number}"
+      firebase.set(target_path, lead_details)
+
+      list = existing_lead ? existing_numbers : added_numbers
+      list << phone_number
+
+      counters = firebase.get("Buckets/#{lead_incharge}/Counter").body || {}
+      if counters.empty?
+        bucket_name = "Bucket1"
+        counters[bucket_name] = 0
+      else
+        bucket_name = counters.keys.sort_by { |k| k[/\d+/].to_i }.last
+      end
+
+      counters[bucket_name] = counters.fetch(bucket_name, 0) + 1
+      if counters[bucket_name] >= 50
+        bucket_name = "Bucket#{bucket_name[/\d+/].to_i + 1}"
+        counters[bucket_name] = 1
+      end
+
+      firebase.set("Buckets/#{lead_incharge}/Counter/#{bucket_name}", counters[bucket_name])
+      firebase.set("Buckets/#{lead_incharge}/#{bucket_name}/#{phone_number}", lead_details)
     end
 
-    message = ""
-    if added_numbers.any?
-      message += "Successfully created/updated leads for phone numbers: #{added_numbers.join(', ')}. "
-    end
-    if existing_numbers.any?
-      message += "Existing numbers updated in Existing_Customer node: #{existing_numbers.join(', ')}. "
-    end
-    if error_messages.any?
-      message += "Errors: #{error_messages.join(' ')}"
-    end
-
-    message.empty? ? "No new leads were created/updated." : message
+    {
+      added_numbers: added_numbers,
+      existing_numbers: existing_numbers,
+      errors: error_messages
+    }.to_json
   rescue CSV::MalformedCSVError => e
-    "CSV Malformed Error: #{e.message}"
+    { error: "CSV Malformed Error: #{e.message}" }.to_json
   rescue => e
-    "Unknown error: #{e.message}"
+    { error: "Unknown error: #{e.message}" }.to_json
   end
 end
 

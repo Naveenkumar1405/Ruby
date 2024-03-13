@@ -307,6 +307,7 @@
     $(document).ready(function() {
         $('#uploadForm').on('submit', function(e) {
             e.preventDefault();
+            $('.loader').show(); // Show loader
             var formData = new FormData(this);
 
             $.ajax({
@@ -315,54 +316,62 @@
                 data: formData,
                 contentType: false,
                 processData: false,
-                success: function(data) {
-                    showMessage('<p style="color:green;">' + data + '</p>', '#message');
-                    location.reload()
+                success: function(response) {
+                    $('.loader').hide(); // Hide loader
+
+                    // Now assuming the response is already a JSON object, no need to parse
+                    var data = response;
+                    var messageHtml = '<div id="upload-results">';
+
+                    if(data.added_numbers && data.added_numbers.length > 0) {
+                        messageHtml += '<p>New Leads created for phone numbers: ' + data.added_numbers.join(', ') + '.</p>';
+                    }
+
+                    if(data.existing_numbers && data.existing_numbers.length > 0) {
+                        messageHtml += '<p>Existing Numbers updated: ' + data.existing_numbers.join(', ') + '.</p>';
+                    }
+
+                    if(data.errors && data.errors.length > 0) {
+                        messageHtml += '<p>Errors:</p><ul>';
+                        data.errors.forEach(function(error) {
+                            messageHtml += '<li>' + error + '</li>';
+                        });
+                        messageHtml += '</ul>';
+                    }
+
+                    messageHtml += '<button id="close-upload-results">Close</button></div>';
+                    $('body').append(messageHtml); // Append the results message to the body
+                    $('#close-upload-results').on('click', function() {
+                        $('#upload-results').remove(); // Remove the results message when the close button is clicked
+                        location.reload(); // Refresh the page after closing the message
+                    });
                 },
+
                 error: function(xhr, status, error) {
+                    $('.loader').hide(); // Hide loader
                     showMessage('<p style="color:red;">Error: ' + xhr.responseText + '</p>', '#message');
                 }
             });
         });
 
-        $('#leadForm').on('submit', function(e) {
-            e.preventDefault();
-            var formData = new FormData(this);
-
-            $.ajax({
-                url: '/create_custom_lead',
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function(data) {
-                    showMessage('<p style="color:green;">' + data + '</p>', '#message-container');
-                    location.reload()
-                },
-                error: function(xhr, status, error) {
-                    showMessage('<p style="color:red;">Error: ' + xhr.responseText + '</p>', '#message-container');
-                }
-            });
-        });
-    });
-
-    function showMessage(message, container) {
-        var messageBox = $(container);
-        messageBox.html(message);
-        messageBox.css({
-            'display': 'block',
-            'opacity': '1'
-        });
-
-        setTimeout(function() {
+        function showMessage(message, container) {
+            var messageBox = $(container);
+            messageBox.html(message);
             messageBox.css({
-                'opacity': '0'
+                'display': 'block',
+                'opacity': '1'
             });
 
             setTimeout(function() {
-                messageBox.css('display', 'none');
-            }, 20000);
-        }, 30000);
-    }
+                messageBox.css({
+                    'opacity': '0'
+                });
+
+                setTimeout(function() {
+                    messageBox.css('display', 'none');
+                }, 5000); // Hide the message after 5 seconds
+            }, 5000); // Start hiding after 5 seconds
+        }
+    });
 </script>
 </html>

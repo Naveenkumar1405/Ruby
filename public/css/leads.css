@@ -162,3 +162,62 @@ input[type="text"], input[type="tel"], input[type="email"], input[type="submit"]
     font-size: 16px;
     color: #000000;
 }
+
+.existing-customers-list {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.existing-customers-list h3 {
+    margin: 0 0 10px 0;
+}
+
+.existing-customers-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.existing-customers-list li {
+    margin-bottom: 5px;
+}
+
+#close-existing-customers {
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+#upload-results {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+    width: 80%;
+    max-width: 600px;
+}
+
+#upload-results p, #upload-results ul {
+    margin: 10px 0;
+}
+
+#upload-results ul {
+    padding-left: 20px;
+}
+
+#close-upload-results {
+    display: inline-block;
+    margin-top: 10px;
+    cursor: pointer;
+}
