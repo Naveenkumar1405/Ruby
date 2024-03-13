@@ -8,15 +8,15 @@ require 'cgi'
 require 'csv'
 require 'httparty'
 
-FIREBASE_URL = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
-FIREBASE_API_KEY = "AIzaSyCCTeiCYTB_npcWKKxl-Oj0StQLTmaFOaE"
-firebase_url = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
-firebase_secret = "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu"
+# FIREBASE_URL = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
+# FIREBASE_API_KEY = "AIzaSyCCTeiCYTB_npcWKKxl-Oj0StQLTmaFOaE"
+# firebase_url = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
+# firebase_secret = "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu"
 
-# FIREBASE_URL = "https://onwords-master-db-default-rtdb.firebaseio.com/"
-# FIREBASE_API_KEY = "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI"
-# firebase_url = "https://onwords-master-db-default-rtdb.firebaseio.com/"
-# firebase_secret = "dZ3YsARVGgTLK1IxplfLfNyh5B890uh7DdIhwLzR"
+FIREBASE_URL = "https://onwords-master-db-default-rtdb.firebaseio.com/"
+FIREBASE_API_KEY = "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI"
+firebase_url = "https://onwords-master-db-default-rtdb.firebaseio.com/"
+firebase_secret = "dZ3YsARVGgTLK1IxplfLfNyh5B890uh7DdIhwLzR"
 
 firebase = Firebase::Client.new(firebase_url, firebase_secret)
 
@@ -26,13 +26,13 @@ set :port, 8080
 set :public_folder, 'public'
 enable :sessions
 
-def firebase
-  @firebase ||= Firebase::Client.new("https://marketing-data-d141d-default-rtdb.firebaseio.com/", "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu")
-end
-
 # def firebase
-#   @firebase ||= Firebase::Client.new("https://onwords-master-db-default-rtdb.firebaseio.com/", "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI")
+#   @firebase ||= Firebase::Client.new("https://marketing-data-d141d-default-rtdb.firebaseio.com/", "FlE36axXatiyqZ9LaLHqb6HG9Z8vplUS1LYpIFSu")
 # end
+
+def firebase
+  @firebase ||= Firebase::Client.new("https://onwords-master-db-default-rtdb.firebaseio.com/", "AIzaSyBb1Age-jnJPIQJDnGFEtbAUPfJm7GdBiI")
+end
 
 error do
   redirect to('/not_found')
@@ -698,7 +698,8 @@ post '/create_lead' do
     file_contents = file.read.encode("UTF-8", "binary", invalid: :replace, undef: :replace, replace: '').gsub("\r", "\n")
     CSV.parse(file_contents, headers: true, liberal_parsing: true) do |row|
       lead_details = row.to_hash.merge(default_values)
-      phone_number = lead_details['phone_number'].to_s.gsub('p:', '').gsub('+91', '')
+      lead_details['phone_number'] = lead_details['phone_number'].to_s.gsub('p:', '').gsub('+91', '') if lead_details['phone_number']
+      phone_number = lead_details['phone_number']
 
       if phone_number.empty?
         error_messages << "Invalid or empty phone number at row: #{row.inspect}"
