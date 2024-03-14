@@ -187,69 +187,69 @@
   </nav>
 </div>
 
-    <div class="card-container">
-      <div class="card">
-        <div class="front">
-          <img src="/img/leads.jpg" alt="Leads" class="leads-image">
-          <form id="uploadForm" action="/create_lead" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" required />
-            <div class="form-group">
-              <select name="EnquiredFor" id="EnquiredFor" class="form-control" required>
-                <option value="">--Enquiry For--</option>
-                <option value="Security System">Security System</option>
-                <option value="Smart Home">Smart Home</option>
-                <option value="Gate Automation">Gate Automation</option>
-                <option value="B2B">B2B</option>
-                <option value="Solar System">Solar System</option>
-                <option value="Audio System">Audio System</option>
-                <option value="Others">Others</option>
-              </select>
-            </div>
-              <select name="lead_incharge">
-                <option value="">Assign In-charge</option>
-                <% @staff_names.each do |name, uid| %>
-                  <option value="<%= name %>"><%= name %></option>
-                <% end %>
-              </select>
-            <input type="submit" value="Upload and Create Leads" class="submit-button"/>
-          </form>
-          <p id="message"></p>
-          <button id="customButton">Create Custom</button>
+<div class="card-container">
+  <div class="card">
+    <div class="front">
+      <img src="/img/leads.jpg" alt="Leads" class="leads-image">
+      <form id="uploadForm" action="/create_lead" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" required />
+        <div class="form-group">
+          <select name="EnquiredFor" id="EnquiredFor" class="form-control" required>
+            <option value="">--Enquiry For--</option>
+            <option value="Security System">Security System</option>
+            <option value="Smart Home">Smart Home</option>
+            <option value="Gate Automation">Gate Automation</option>
+            <option value="B2B">B2B</option>
+            <option value="Solar System">Solar System</option>
+            <option value="Audio System">Audio System</option>
+            <option value="Others">Others</option>
+          </select>
         </div>
-
-        <div class="back">
-          <form id="leadForm" action="/create_custom_lead" method="post">
-            <div class="icon-input">
-              <i class="fas fa-user"></i>
-              <input type="text" id="name" name="name" placeholder="Name" required>
-            </div>
-            <div class="icon-input">
-              <i class="fas fa-phone"></i>
-              <input type="tel" id="phone" name="phone" placeholder="Phone" required>
-            </div>
-            <div class="icon-input">
-              <i class="fas fa-envelope"></i>
-              <input type="email" id="email" name="email" placeholder="Email">
-            </div>
-            <div class="icon-input">
-              <i class="fas fa-question"></i>
-              <input type="text" id="enquiredFor" name="enquiredFor" placeholder="Enquired For" required>
-            </div>
-            <div class="icon-input">
-              <i class="fas fa-search"></i>
-              <input type="text" id="source" name="source" placeholder="Source" required>
-            </div>
-            <div class="icon-input">
-              <i class="fas fa-map-marker-alt"></i>
-              <input type="text" id="location" name="location" placeholder="Location" required>
-            </div>
-            <input type="submit" value="Submit" class="submit-button">
-          </form>
-          <div id="message-container"></div>
-          <input type="button" value="Create with File" id="createWithFileButton" class="submit-button"/>
-        </div>
-      </div>
+        <select name="lead_incharge">
+          <option value="">Assign In-charge</option>
+          <% @staff_names.each do |name, uid| %>
+            <option value="<%= name %>"><%= name %></option>
+          <% end %>
+        </select>
+        <input type="submit" value="Upload and Create Leads" class="submit-button"/>
+      </form>
+      <p id="message"></p>
+      <button id="customButton">Create Custom</button>
     </div>
+
+    <div class="back">
+      <form id="leadForm" action="/create_custom_lead" method="post">
+        <div class="icon-input">
+          <i class="fas fa-user"></i>
+          <input type="text" id="name" name="name" placeholder="Name" required>
+        </div>
+        <div class="icon-input">
+          <i class="fas fa-phone"></i>
+          <input type="tel" id="phone" name="phone" placeholder="Phone" required>
+        </div>
+        <div class="icon-input">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="email" name="email" placeholder="Email">
+        </div>
+        <div class="icon-input">
+          <i class="fas fa-question"></i>
+          <input type="text" id="enquiredFor" name="enquiredFor" placeholder="Enquired For" required>
+        </div>
+        <div class="icon-input">
+          <i class="fas fa-search"></i>
+          <input type="text" id="source" name="source" placeholder="Source" required>
+        </div>
+        <div class="icon-input">
+          <i class="fas fa-map-marker-alt"></i>
+          <input type="text" id="location" name="location" placeholder="Location" required>
+        </div>
+        <input type="submit" value="Submit" class="submit-button">
+      </form>
+      <div id="message-container"></div>
+      <input type="button" value="Create with File" id="createWithFileButton" class="submit-button"/>
+    </div>
+  </div>
+</div>
 
 <div class="loader"></div>
 
@@ -307,7 +307,7 @@
     $(document).ready(function() {
         $('#uploadForm').on('submit', function(e) {
             e.preventDefault();
-            $('.loader').show(); // Show loader
+            $('.loader').show();
             var formData = new FormData(this);
 
             $.ajax({
@@ -317,10 +317,10 @@
                 contentType: false,
                 processData: false,
                 success: function(response) {
-                    $('.loader').hide(); // Hide loader
+                    $('.loader').hide();
 
-                    // Now assuming the response is already a JSON object, no need to parse
                     var data = response;
+                    console.log(data)
                     var messageHtml = '<div id="upload-results">';
 
                     if(data.added_numbers && data.added_numbers.length > 0) {
@@ -340,15 +340,15 @@
                     }
 
                     messageHtml += '<button id="close-upload-results">Close</button></div>';
-                    $('body').append(messageHtml); // Append the results message to the body
+                    $('body').append(messageHtml);
                     $('#close-upload-results').on('click', function() {
-                        $('#upload-results').remove(); // Remove the results message when the close button is clicked
-                        location.reload(); // Refresh the page after closing the message
+                        $('#upload-results').remove();
+                        location.reload();
                     });
                 },
 
                 error: function(xhr, status, error) {
-                    $('.loader').hide(); // Hide loader
+                    $('.loader').hide();
                     showMessage('<p style="color:red;">Error: ' + xhr.responseText + '</p>', '#message');
                 }
             });

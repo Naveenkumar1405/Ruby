@@ -691,27 +691,29 @@ post '/create_lead' do
     "LeadIncharge" => lead_incharge,
     "inquired_for" => inquired_for
   }
-
   added_numbers, existing_numbers, error_messages = [], [], []
-
   begin
-    file_contents = file.read.encode("UTF-8", "binary", invalid: :replace, undef: :replace, replace: '').gsub("\r", "\n")
+    file_contents = file.read.encode("UTF-8", "binary", invalid: :replace, undef: :replace, replace: '')
+    file_contents.gsub!("\r", "\n")
+
     CSV.parse(file_contents, headers: true, liberal_parsing: true) do |row|
       lead_details = row.to_hash.merge(default_values)
       lead_details['phone_number'] = lead_details['phone_number'].to_s.gsub('p:', '').gsub('+91', '') if lead_details['phone_number']
       phone_number = lead_details['phone_number']
 
-      if phone_number.empty?
+      if phone_number.nil? || phone_number.empty?
         error_messages << "Invalid or empty phone number at row: #{row.inspect}"
         next
       end
 
       existing_lead = firebase.get("customer/#{phone_number}").body
-      target_path = existing_lead ? "Existing_customer/#{phone_number}" : "customer/#{phone_number}"
-      firebase.set(target_path, lead_details)
-
-      list = existing_lead ? existing_numbers : added_numbers
-      list << phone_number
+      if existing_lead
+        firebase.set("Existing_customer/#{phone_number}", lead_details)
+        existing_numbers.push(phone_number)
+      else
+        firebase.set("customer/#{phone_number}", lead_details)
+        added_numbers.push(phone_number)
+      end
 
       counters = firebase.get("Buckets/#{lead_incharge}/Counter").body || {}
       if counters.empty?
@@ -728,7 +730,7 @@ post '/create_lead' do
       end
 
       firebase.set("Buckets/#{lead_incharge}/Counter/#{bucket_name}", counters[bucket_name])
-      firebase.set("Buckets/#{lead_incharge}/#{bucket_name}/#{phone_number}", lead_details)
+      firebase.set("Buckets/#{lead_incharge}/#{bucket_name}/#{phone_number}", {"state" => "New leads"})
     end
 
     {
