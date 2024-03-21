@@ -1128,6 +1128,43 @@ get '/filter_customers' do
   end
 end
 
+get '/get_customer_states_and_incharge_counts' do
+  content_type :json
+
+  if session[:user_uid]
+    batch = params['batch']
+    response = firebase.get('customer')
+
+    if response.success?
+      customers = response.body.values.select do |customer|
+        customer['created_date']&.start_with?(batch)
+      end
+
+      state_counts = {}
+      incharge_counts = {}
+
+      customers.each do |customer|
+        state = customer['customer_state']
+        incharge = customer['LeadIncharge']
+
+        state_counts[state] = state_counts.fetch(state, 0) + 1
+        incharge_counts[incharge] = incharge_counts.fetch(incharge, 0) + 1
+      end
+
+      {
+        states: state_counts,
+        incharges: incharge_counts
+      }.to_json
+    else
+      status 404
+      { error: 'Data not found' }.to_json
+    end
+  else
+    status 401
+    { error: 'Unauthorized' }.to_json
+  end
+end
+
 get '/view_buckets' do
   if session[:user_uid]
     response = firebase.get('Buckets')

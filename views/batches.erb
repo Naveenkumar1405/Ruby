@@ -10,10 +10,36 @@
   <link rel="icon" type="image/x-icon" href="/img/fav.png">
   <title>Onwords WorkSpace</title>
   <style>
-    #statePieChart{max-width: 500px!important;max-height: 500px!important;}
-    .chart-container {display: flex;justify-content: center;align-items: flex-start;}
-    .chart-labels {margin-right: 20px;}
-    .chart-labels p {margin: 0;padding: 5px;}
+      .chart-container {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 20px; /* Space between charts */
+          padding: 20px;
+      }
+
+      .chart-box {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          max-width: 500px; /* Adjust based on your preference */
+      }
+
+      .chart-canvas {
+          max-width: 500px;
+          max-height: 500px;
+      }
+
+      .chart-labels {
+          text-align: center;
+          margin-top: 10px;
+      }
+
+      .chart-title {
+          margin: 10px 0;
+          font-size: 18px;
+          font-weight: bold;
+      }
   </style>
 </head>
 <body>
@@ -187,7 +213,7 @@
 <main>
 
   <section>
-    <ul>
+    <ul id="batch-select">
       <% @months.each do |month| %>
         <li>
           <a href="/get_customers_by_batch?batch=<%= month %>">
@@ -199,9 +225,13 @@
   </section>
 
   <div class="chart-container">
-    <div class="chart-labels" id="chartLabels"></div>
-    <div class="chart-pie">
-      <canvas id="statePieChart" width="400" height="400"></canvas>
+    <div class="chart-box">
+      <canvas id="statePieChart" class="chart-canvas"></canvas>
+      <div id="stateCounts" class="chart-labels"></div>
+    </div>
+    <div class="chart-box">
+      <canvas id="inchargePieChart" class="chart-canvas"></canvas>
+      <div id="inchargeCounts" class="chart-labels"></div>
     </div>
   </div>
 
@@ -253,6 +283,67 @@
     }
 </script>
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('#batch-select a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.loader').style.display = 'block';
+
+                const urlParams = new URL(this.href).searchParams;
+                const batch = urlParams.get('batch');
+
+                fetch(`/get_customer_states_and_incharge_counts?batch=${batch}`)
+                  .then(response => response.json())
+                  .then(data => {
+                      updatePieChart('statePieChart', 'Customers by State', data.states);
+                      updatePieChart('inchargePieChart', 'Customers by Incharge', data.incharges);
+                      displayCounts('stateCounts', data.states);
+                      displayCounts('inchargeCounts', data.incharges);
+                      document.querySelector('.loader').style.display = 'none';
+                  })
+                  .catch(error => {
+                      console.error('Error:', error);
+                      document.querySelector('.loader').style.display = 'none';
+                  });
+            });
+        });
+    });
+
+    function updatePieChart(elementId, title, data) {
+        const ctx = document.getElementById(elementId).getContext('2d');
+        if (window[elementId + 'Chart']) {
+            window[elementId + 'Chart'].destroy();
+        }
+        window[elementId + 'Chart'] = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    data: Object.values(data),
+                    backgroundColor: ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'cyan', 'magenta', 'grey', 'olive'],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: title }
+                }
+            }
+        });
+    }
+
+    function displayCounts(elementId, data) {
+        const container = document.getElementById(elementId);
+        container.innerHTML = '';
+        Object.entries(data).forEach(([key, value]) => {
+            const div = document.createElement('div');
+            div.textContent = `${key}: ${value}`;
+            container.appendChild(div);
+        });
+    }
+</script>
+<script>
     function filterCustomersByIncharge() {
         var inchargeUid = document.getElementById('incharge-dropdown').value;
         var batch = '<%= params['batch'] %>';
@@ -261,6 +352,8 @@
             .then(response => response.json())
             .then(customers => {
                 const stateCounts = {};
+                let totalCount = 0;
+
                 customers.forEach(customer => {
                     const state = customer.customer_state;
                     if(stateCounts[state]) {
@@ -268,16 +361,23 @@
                     } else {
                         stateCounts[state] = 1;
                     }
+                    totalCount += 1;
                 });
-                createPieChart(stateCounts);
+                createPieChart(stateCounts, totalCount);
             })
             .catch(error => console.error('Error:', error));
     }
 
-    function createPieChart(stateCounts) {
-        // Clear existing content and populate new labels
+    function createPieChart(stateCounts, totalCount) {
+
         const labelsContainer = document.getElementById('chartLabels');
         labelsContainer.innerHTML = '';
+
+        const totalLabelElement = document.createElement('p');
+        totalLabelElement.textContent = `Total: ${totalCount}`;
+        totalLabelElement.style.fontWeight = 'bold';
+        labelsContainer.appendChild(totalLabelElement);
+
         Object.keys(stateCounts).forEach(state => {
             const count = stateCounts[state];
             const labelElement = document.createElement('p');
@@ -297,7 +397,11 @@
             }]
         };
 
-        new Chart(ctx, {
+        if (window.myPieChart) {
+            window.myPieChart.destroy();
+        }
+
+        window.myPieChart = new Chart(ctx, {
             type: 'pie',
             data: data,
             options: {
