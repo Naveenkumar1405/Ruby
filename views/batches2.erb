@@ -10,27 +10,57 @@
   <link rel="icon" type="image/x-icon" href="/img/fav.png">
   <title>Onwords WorkSpace</title>
   <style>
-      #statePieChart{max-width: 500px!important;max-height: 500px!important;}
-      .chart-container {display: flex;justify-content: center;align-items: flex-start;}
-      .chart-labels {margin-right: 20px;}
-      .chart-labels p {margin: 0;padding: 5px;}
+      .chart-container {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-around;
+          align-items: flex-start;
+          padding: 20px;
+          gap: 30px; /* Increase gap for better separation */
+      }
+
+      .chart-box {
+          flex: 1;
+          min-width: 300px; /* Adjust as needed */
+          max-width: 480px; /* Optimal for readability and layout */
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 20px;
+          box-shadow: 0 10px 20px rgba(0,0,0,0.12), 0 4px 6px rgba(0,0,0,0.08); /* Soft shadow for depth */
+          background: #FFF; /* Clear background */
+          border-radius: 8px; /* Rounded corners */
+      }
+
+      .chart-canvas {
+          width: 100%;
+          aspect-ratio: 1; /* Keep aspect ratio for charts */
+      }
+
+      .chart-labels {
+          width: 100%;
+          text-align: center;
+          margin-top: 20px; /* Space between chart and labels */
+      }
+
+      .label-item {
+          font-size: 16px; /* Larger font size for readability */
+          color: #333; /* Dark gray for better contrast */
+          padding: 4px; /* Padding for touch targets */
+          border-radius: 4px; /* Soft rounded corners for labels */
+          background-color: #f5f5f5; /* Light background for labels */
+          margin: 5px 0; /* Space between labels */
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+          display: inline-block; /* Make labels inline */
+          width: auto; /* Auto width based on content */
+          margin-right: 10px; /* Space between inline labels */
+      }
   </style>
 </head>
 <body>
 <header class="header">
   <div class="header__container">
     <a href="#" class="header__logo">Onwords WorkSpace</a>
-
-    <select id="incharge-dropdown" onchange="filterCustomersByIncharge()">
-      <option value="">Select In-charge</option>
-      <% if @staff_names && !@staff_names.empty? %>
-        <% @staff_names.each do |name, uid| %>
-          <option value="<%= name %>"><%= name %></option>
-        <% end %>
-      <% else %>
-        <p>--None--</p>
-      <% end %>
-    </select>
 
     <div class="header__toggle">
       <i class='bx bx-menu' id="header-toggle"></i>
@@ -194,10 +224,10 @@
 <main>
 
   <section>
-    <ul>
+    <ul id="batch-select">
       <% @months.each do |month| %>
         <li>
-          <a href="/get_customers_by_batch?batch=<%= month %>">
+          <a href="/get_customer_by_batch?batch=<%= month %>">
             <%= month %> (<%= @month_counts[month] %> Leads)
           </a>
         </li>
@@ -206,45 +236,16 @@
   </section>
 
   <div class="chart-container">
-    <div class="chart-labels" id="chartLabels"></div>
-    <div class="chart-pie">
-      <canvas id="statePieChart" width="400" height="400"></canvas>
+    <div class="chart-box">
+
+      <canvas id="statePieChart" class="chart-canvas"></canvas>
+      <div id="stateCounts" class="chart-labels"></div>
+    </div>
+    <div class="chart-box">
+      <canvas id="inchargePieChart" class="chart-canvas"></canvas>
+      <div id="inchargeCounts" class="chart-labels"></div>
     </div>
   </div>
-
-  <section>
-    <h1>Customers in <%= params['batch'] %></h1>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Phone</th>
-        <th>Status
-          <select id="status-filter" onchange="filterCustomersByStatus()">
-            <option value="">Select Status</option>
-            <option value="Rejected from MGMT">Rejected from MGMT</option>
-            <option value="B2B">In B2B</option>
-            <option value="Visited">Visited</option>
-            <option value="Installation Completed">Installation Completed</option>
-            <option value="Under Construction">Under Construction</option>
-            <option value="Delayed">Delayed</option>
-            <option value="Hot lead">Hot lead</option>
-            <option value="need to visit">Need to visit</option>
-          </select>
-        </th>
-        <th>Enquired For</th>
-        <th>In-charge</th>
-      </tr>
-      <% @customers.each do |customer| %>
-        <tr>
-          <td><a href="/customer_profile?phone_number=<%= customer['phone_number'] %>"><%= customer['name'] %></a></td>
-          <td><%= customer['phone_number'] %></td>
-          <td><%= customer['customer_state'] %></td>
-          <td><%= customer['inquired_for'] %></td>
-          <td><%= customer['LeadIncharge'] %></td>
-        </tr>
-      <% end %>
-    </table>
-  </section>
 
 </main>
 
@@ -256,94 +257,92 @@
         const status = document.getElementById('status-filter').value;
         const batch = '<%= params['batch'] %>';
 
-        window.location.href = `/get_customers_by_batch?batch=${batch}&status=${status}`;
+        window.location.href = `/get_customer_by_batch?batch=${batch}&status=${status}`;
     }
 </script>
 <script>
-    function filterCustomersByIncharge() {
-        var inchargeUid = document.getElementById('incharge-dropdown').value;
-        var batch = '<%= params['batch'] %>';
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('#batch-select a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.loader').style.display = 'block';
 
-        fetch(`/filter_customers?batch=${batch}&incharge=${inchargeUid}`)
-            .then(response => response.json())
-            .then(customers => {
-                const stateCounts = {};
-                let totalCount = 0;
+                const urlParams = new URL(this.href).searchParams;
+                const batch = urlParams.get('batch');
 
-                customers.forEach(customer => {
-                    const state = customer.customer_state;
-                    if(stateCounts[state]) {
-                        stateCounts[state] += 1;
-                    } else {
-                        stateCounts[state] = 1;
-                    }
-                    totalCount += 1;
-                });
-                createPieChart(stateCounts, totalCount);
-            })
-            .catch(error => console.error('Error:', error));
-    }
-
-    function createPieChart(stateCounts, totalCount) {
-
-        const labelsContainer = document.getElementById('chartLabels');
-        labelsContainer.innerHTML = '';
-
-        const totalLabelElement = document.createElement('p');
-        totalLabelElement.textContent = `Total: ${totalCount}`;
-        totalLabelElement.style.fontWeight = 'bold';
-        labelsContainer.appendChild(totalLabelElement);
-
-        Object.keys(stateCounts).forEach(state => {
-            const count = stateCounts[state];
-            const labelElement = document.createElement('p');
-            labelElement.textContent = `${state}: ${count}`;
-            labelsContainer.appendChild(labelElement);
+                fetch(`/get_customer_states_and_incharge_counts?batch=${batch}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        updatePieChart('statePieChart', 'Customers by State', data.states);
+                        updatePieChart('inchargePieChart', 'Customers by Incharge', data.incharges);
+                        displayCounts('stateCounts', data.states);
+                        displayCounts('inchargeCounts', data.incharges);
+                        document.querySelector('.loader').style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        document.querySelector('.loader').style.display = 'none';
+                    });
+            });
         });
+    });
 
-        const ctx = document.getElementById('statePieChart').getContext('2d');
-        const data = {
-            labels: Object.keys(stateCounts),
-            datasets: [{
-                label: 'Customer Count by State',
-                data: Object.values(stateCounts),
-                backgroundColor: [
-                    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'cyan', 'magenta', 'black', 'olive'
-                ],
-            }]
-        };
-
-        if (window.myPieChart) {
-            window.myPieChart.destroy();
+    function updatePieChart(elementId, title, data) {
+        const ctx = document.getElementById(elementId).getContext('2d');
+        if (window[elementId + 'Chart']) {
+            window[elementId + 'Chart'].destroy();
         }
-
-        window.myPieChart = new Chart(ctx, {
+        window[elementId + 'Chart'] = new Chart(ctx, {
             type: 'pie',
-            data: data,
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    data: Object.values(data),
+                    backgroundColor: ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'cyan', 'magenta', 'grey', 'olive'],
+                }]
+            },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: title }
+                }
             }
         });
     }
-</script>
-<script>
-    function loadCustomersByBatch(batch) {
-        fetch('/get_customers_by_batch?batch=' + batch)
-            .then(response => response.json())
-            .then(data => {
-                displayCustomerData(data);
-            })
-            .catch(error => console.error('Error:', error));
-    }
 
-    function displayCustomerData(data) {
-        var customerContainer = document.getElementById('customerData');
-        customerContainer.innerHTML = '';
-        data.forEach(customer => {
-            var customerElement = document.createElement('div');
-            customerElement.innerHTML = 'Customer Name: ' + customer.name + ' | Created Date: ' + customer.created_date;
-            customerContainer.appendChild(customerElement);
+    function displayCounts(elementId, data) {
+        const container = document.getElementById(elementId);
+        container.innerHTML = ''; // Clear the container at the start
+
+        // Define states considered as "Potential Customers"
+        const potentialCustomerStates = ['Interested', 'Following Up', 'Under Construction', 'Delayed', 'Need to visit', 'Visited'];
+
+        // Initialize the count for "Potential Customers"
+        let potentialCustomersCount = 0;
+
+        // Aggregate counts for "Potential Customers"
+        potentialCustomerStates.forEach(state => {
+            if (data[state]) {
+                potentialCustomersCount += data[state];
+                delete data[state]; // Remove the state from data to avoid duplication
+            }
+        });
+
+        // First, display the aggregated count for "Potential Customers"
+        if (potentialCustomersCount > 0) { // Only display if the count is not zero
+            const potentialCustomersDiv = document.createElement('div');
+            potentialCustomersDiv.classList.add('label-item');
+            potentialCustomersDiv.textContent = `Potential Customers: ${potentialCustomersCount}`;
+            container.appendChild(potentialCustomersDiv);
+        }
+
+        // Then, display counts for all other states
+        Object.entries(data).forEach(([key, value]) => {
+            const div = document.createElement('div');
+            div.classList.add('label-item');
+            div.textContent = `${key}: ${value}`;
+            container.appendChild(div);
         });
     }
 </script>
@@ -386,12 +385,5 @@
         this.classList.add('active')
     }
     linkColor.forEach(l => l.addEventListener('click', colorLink))
-</script>
-<script>
-    function submitForm(form) {
-        let phone_number = document.getElementById('phone_number').value;
-        form.action = '/customer_profile/' + encodeURIComponent(phone_number);
-        return true;
-    }
 </script>
 </html>

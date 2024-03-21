@@ -435,7 +435,7 @@ post '/update_LeadIncharge' do
     if customer_key
       update_response = firebase.set("customer/#{customer_key}/LeadIncharge", new_Incharge)
     else
-       "Customer not found"
+      "Customer not found"
     end
   else
     "Failed to retrieve customers"
@@ -1066,6 +1066,42 @@ get '/batch' do
   end
 end
 
+get '/batch2' do
+  if session[:user_uid]
+    uid = session[:user_uid] || request.cookies['uid']
+    @user_details = get_staff_details(uid)
+
+    response = firebase.get('customer')
+
+    if response.success?
+      customers = response.body.values
+
+      @month_counts = {}
+      @customers = []
+      @staff_names = {}
+
+      customers.each do |customer|
+        next if customer['created_date'].nil?
+
+        month_year = customer['created_date'][0..6]
+        if @month_counts[month_year]
+          @month_counts[month_year] += 1
+        else
+          @month_counts[month_year] = 1
+        end
+      end
+
+      @months = @month_counts.keys.sort
+    else
+      @months = []
+      @month_counts = {}
+    end
+    erb :batches2
+  else
+    redirect to('/login')
+  end
+end
+
 get '/get_customers_by_batch' do
   if session[:user_uid]
     batch = params['batch']
@@ -1097,6 +1133,46 @@ get '/get_customers_by_batch' do
       end
       @months = @month_counts.keys.sort
       erb :batches
+    else
+      status 404
+      erb :error
+    end
+  else
+    redirect to('/login')
+  end
+end
+
+get '/get_customer_by_batch' do
+  if session[:user_uid]
+    batch = params['batch']
+    response = firebase.get('customer')
+    staff_response = firebase.get('staff_details')
+    status_filter = params['status']
+
+    if response.success?
+      customers = response.body.values
+      all_staff = staff_response.body
+      @staff_names = all_staff.select { |_uid, details| details['department'] == 'PR' }.map { |_uid, details| [details['name'], _uid] }
+      @customers = customers.select do |customer|
+        next if customer['created_date'].nil?
+        matches_batch = customer['created_date'][0..6] == batch
+        matches_status = status_filter.nil? || status_filter.empty? || customer['customer_state'] == status_filter
+        matches_batch && matches_status
+      end
+
+      @months = []
+      @month_counts = {}
+      customers.each do |customer|
+        next if customer['created_date'].nil?
+        month_year = customer['created_date'][0..6]
+        if @month_counts[month_year]
+          @month_counts[month_year] += 1
+        else
+          @month_counts[month_year] = 1
+        end
+      end
+      @months = @month_counts.keys.sort
+      erb :batches2
     else
       status 404
       erb :error
@@ -1165,13 +1241,14 @@ get '/get_customer_states_and_incharge_counts' do
   end
 end
 
+
 get '/view_buckets' do
   if session[:user_uid]
     response = firebase.get('Buckets')
     if response.success?
       @buckets_data = response.body
     else
-      end
+    end
     erb :view_buckets
   else
     redirect to('/login')
