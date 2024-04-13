@@ -1322,3 +1322,32 @@ get '/customer_states_all_buckets/:name' do
   all_buckets_states_data = fetch_and_aggregate_all_buckets(name)
   all_buckets_states_data.to_json
 end
+
+get '/finance' do
+  erb :financial_tracker
+end
+
+post '/submit_amount' do
+  date = params[:date]
+  amount = params[:amount].to_f
+  category = params[:category]
+  type = params[:type]
+
+  parsed_date = Date.parse(date)
+  year = parsed_date.year
+  month = parsed_date.month
+  day = parsed_date.day
+
+  path = "expense_tracker/#{type}/#{year}/#{month}/#{day}"
+  data = { amount: amount, category: category }
+
+  # Set data to Firebase
+  response = firebase.set(path, data)
+
+  # Check response for success or failure
+  if response.success?
+    redirect '/finance'
+  else
+    "Error: #{response.body}"
+  end
+end

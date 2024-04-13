@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Financial Tracker</title>
+  <style>
+      [type="date"] {
+          background:#fff url(https://cdn1.iconfinder.com/data/icons/cc_mono_icon_set/blacks/16x16/calendar_2.png)  97% 50% no-repeat ;
+      }
+      [type="date"]::-webkit-inner-spin-button {
+          display: none;
+      }
+      [type="date"]::-webkit-calendar-picker-indicator {
+          opacity: 0;
+      }
+
+      /* custom styles */
+      body {
+          padding: 4em;
+          background: #e5e5e5;
+          font: 13px/1.4 Geneva, 'Lucida Sans', 'Lucida Grande', 'Lucida Sans Unicode', Verdana, sans-serif;
+      }
+      label {
+          display: block;
+      }
+      input {
+          border: 1px solid #c4c4c4;
+          border-radius: 5px;
+          background-color: #fff;
+          padding: 3px 5px;
+          box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);
+          width: 190px;
+      }
+  </style>
+</head>
+<body>
+<h1>Financial Entry</h1>
+<form action="/submit_amount" method="post">
+  <div>
+    <label for="dateofbirth">Date Of Birth</label>
+    <input type="date" name="dateofbirth" id="dateofbirth">
+  </div>
+  <div>
+    <label for="amount">Amount:</label>
+    <input type="number" id="amount" name="amount">
+  </div>
+  <div>
+    <label for="category">Category:</label>
+    <select id="category" name="category">
+      <option value="Nikhil Personal">Nikhil Personal</option>
+      <option value="Sales">Sales</option>
+      <option value="PR">PR</option>
+      <option value="Gate Stock">Gate Stock</option>
+      <option value="Salary">Salary</option>
+      <option value="Installation">Installation</option>
+      <option value="Civil">Civil</option>
+      <option value="R&D">R&D</option>
+      <option value="IT">IT</option>
+      <option value="Farm">Farm</option>
+      <option value="Pad Lock">Pad Lock"</option>
+      <option value="Leads">Leads</option>
+      <option value="General Office">General Office</option>
+      <option value="SH Stock">SH Stock</option>
+      <option value="Laptop Rent">Laptop Rent</option>
+      <option value="The Boys">The Boys</option>
+      <option value="Accomodation">Accomodation</option>
+      <option value="Solar">Solar</option>
+      <option value="Auto Debit">Auto Debit</option>
+      <option value="SS Stock">SS Stock</option>
+      <option value="Debt Amount">Debt Amount</option>
+      <option value="House">House</option>
+    </select>
+  </div>
+  <div>
+    <label for="type">Type:</label>
+    <select id="type" name="type">
+      <option value="expense">Expense</option>
+      <option value="income">Income</option>
+    </select>
+  </div>
+  <div>
+    <button type="submit">Submit</button>
+  </div>
+</form>
+</body>
+</html>
