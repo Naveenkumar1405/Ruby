@@ -22,7 +22,7 @@ firebase = Firebase::Client.new(firebase_url, firebase_secret)
 
 ENV['TZ'] = 'UTC'
 set :bind, '0.0.0.0'
-set :port, 80
+set :port, 8080
 set :public_folder, 'public'
 enable :sessions
 
