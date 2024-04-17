@@ -1,85 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Financial Tracker</title>
-  <style>
-      [type="date"] {
-          background:#fff url(https://cdn1.iconfinder.com/data/icons/cc_mono_icon_set/blacks/16x16/calendar_2.png)  97% 50% no-repeat ;
-      }
-      [type="date"]::-webkit-inner-spin-button {
-          display: none;
-      }
-      [type="date"]::-webkit-calendar-picker-indicator {
-          opacity: 0;
-      }
-
-      /* custom styles */
-      body {
-          padding: 4em;
-          background: #e5e5e5;
-          font: 13px/1.4 Geneva, 'Lucida Sans', 'Lucida Grande', 'Lucida Sans Unicode', Verdana, sans-serif;
-      }
-      label {
-          display: block;
-      }
-      input {
-          border: 1px solid #c4c4c4;
-          border-radius: 5px;
-          background-color: #fff;
-          padding: 3px 5px;
-          box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);
-          width: 190px;
-      }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/finance.css">
+  <link rel="icon" type="image/x-icon" href="/img/fav.png">
+  <title>Onwords WorkSpace</title>
 </head>
 <body>
-<h1>Financial Entry</h1>
-<form action="/submit_amount" method="post">
-  <div>
-    <label for="dateofbirth">Date Of Birth</label>
-    <input type="date" name="dateofbirth" id="dateofbirth">
+<header class="header">
+  <div class="header__container">
+    <section class="modal container header__img">
+      <button class="modal__button" id="open-modal">
+        <i class='bx bx-star' id="header-toggle"></i>
+      </button>
+    </section>
+    <a href="#" class="header__logo">Onwords WorkSpace</a>
+    <div class="header__toggle">
+      <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
   </div>
-  <div>
-    <label for="amount">Amount:</label>
-    <input type="number" id="amount" name="amount">
+</header>
+<div class="modal__container" id="modal-container">
+  <div class="modal__content">
+    <div class="modal__close close-modal" title="Close">
+      <i class='bx bx-x'></i>
+    </div>
+    <img src="<%= @user_details['profileImage'] %>" alt="Profile Image" class="modal__img">
+    <h1 class="modal__title"><%= @user_details['name'] %></h1>
+    <p class="modal__description"><%= @user_details['mobile'] %></p>
+    <p class="modal__description"><%= @user_details['email'] %></p>
+    <p class="modal__description"><%= Time.at(@user_details['dob'].to_i / 1000).strftime("%d-%m-%Y") %></p>
+    <button class="modal__button modal__button-width">
+      <%= @user_details['department'] %>
+    </button>
   </div>
-  <div>
-    <label for="category">Category:</label>
-    <select id="category" name="category">
-      <option value="Nikhil Personal">Nikhil Personal</option>
-      <option value="Sales">Sales</option>
-      <option value="PR">PR</option>
-      <option value="Gate Stock">Gate Stock</option>
-      <option value="Salary">Salary</option>
-      <option value="Installation">Installation</option>
-      <option value="Civil">Civil</option>
-      <option value="R&D">R&D</option>
-      <option value="IT">IT</option>
-      <option value="Farm">Farm</option>
-      <option value="Pad Lock">Pad Lock"</option>
-      <option value="Leads">Leads</option>
-      <option value="General Office">General Office</option>
-      <option value="SH Stock">SH Stock</option>
-      <option value="Laptop Rent">Laptop Rent</option>
-      <option value="The Boys">The Boys</option>
-      <option value="Accomodation">Accomodation</option>
-      <option value="Solar">Solar</option>
-      <option value="Auto Debit">Auto Debit</option>
-      <option value="SS Stock">SS Stock</option>
-      <option value="Debt Amount">Debt Amount</option>
-      <option value="House">House</option>
-    </select>
-  </div>
-  <div>
-    <label for="type">Type:</label>
-    <select id="type" name="type">
-      <option value="expense">Expense</option>
-      <option value="income">Income</option>
-    </select>
-  </div>
-  <div>
-    <button type="submit">Submit</button>
-  </div>
-</form>
+</div>
+
+<div class="nav" id="navbar">
+  <nav class="nav__container">
+    <div>
+      <img src="/img/onwords.svg" alt="Logo" class="nav__logo-name">
+      <div class="nav__list">
+        <div class="nav__items">
+
+          <a href="/" class="nav__link">
+            <i class='bx bx-home nav__icon'></i>
+            <span class="nav__name">Home</span>
+          </a>
+
+          <div class="nav__dropdown">
+            <i class='bx bx-user nav__icon'></i>
+            <span class="nav__name">Clients</span>
+            <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+            <div class="nav__dropdown-collapse">
+              <div class="nav__dropdown-content">
+                <a href="/states" class="nav__dropdown-item">Status</a>
+                <a href="/create_lead" class="nav__dropdown-item active">Create Lead</a>
+                <% allowed_departments = %w[ADMIN BRAVO] %>
+                <% if allowed_departments.include?(@user_details['department']) %>
+                  <a href="/bulk_assign" class="nav__dropdown-item">Bulk Assign</a>
+                <% end %>
+                <a href="/my_clients" class="nav__dropdown-item">My Clients</a>
+              </div>
+            </div>
+          </div>
+
+          <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+          <% if allowed_departments.include?(@user_details['department']) %>
+            <div class="nav__dropdown">
+              <i class='bx bx-money nav__icon active' ></i>
+              <span class="nav__name">Expense Tracker</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/finance" class="nav__dropdown-item">Update Transactions</a>
+                  <a href="/financial_analyser" class="nav__dropdown-item">Analysis</a>
+                </div>
+              </div>
+            </div>
+          <% end %>
+
+          <div class="nav__items">
+            <div class="nav__dropdown">
+              <i class='bx bx-compass nav__icon' ></i>
+              <span class="nav__name">Files</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/invoice" class="nav__dropdown-item">Invoice</a>
+                  <a href="/proforma-invoice" class="nav__dropdown-item">Proforma</a>
+                  <a href="/quotation" class="nav__dropdown-item">Quotation</a>
+                </div>
+              </div>
+            </div>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/create_staff" class="nav__link">
+                <i class='bx bx-plus nav__icon' ></i>
+                <span class="nav__name">Create Staff</span>
+              </a>
+            <% end %>
+
+            <div class="nav__dropdown">
+              <i class='bx bx-smile nav__icon' ></i>
+              <span class="nav__name">Attendance</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/attendance" class="nav__dropdown-item">Daily</a>
+                  <a href="/attendance/monthly_summary" class="nav__dropdown-item">Monthly</a>
+                </div>
+              </div>
+            </div>
+
+            <% allowed_departments = %w[ADMIN MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/notifications" class="nav__link">
+                <i class='bx bx-bell nav__icon' ></i>
+                <span class="nav__name">Notification</span>
+                <% if @unread_count && @unread_count > 0 %>
+                  <span class="nav__notification"><%= @unread_count %></span>
+                <% end %>
+              </a>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/inventory" class="nav__link">
+                <i class='bx bx-bookmark nav__icon' ></i>
+                <span class="nav__name">Inventory</span>
+              </a>
+            <% end %>
+
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/view_completed_schedules" class="nav__link">
+                <i class='bx bx-message-check nav__icon' ></i>
+                <span class="nav__name">Completion History</span>
+              </a>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT PR] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <div class="nav__dropdown">
+                <i class='bx bx-data nav__icon' ></i>
+                <span class="nav__name">Batch View</span>
+                <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+                <div class="nav__dropdown-collapse">
+                  <div class="nav__dropdown-content">
+                    <a href="/batch" class="nav__dropdown-item">Individual</a>
+                    <a href="/batch2" class="nav__dropdown-item">Overall</a>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/view_buckets" class="nav__link">
+                <i class='bx bx-bar-chart nav__icon' ></i>
+                <span class="nav__name">Bucket Analytics</span>
+              </a>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/performance_tables" class="nav__link">
+                <i class='bx bx-stats nav__icon' ></i>
+                <span class="nav__name">TC Performance</span>
+              </a>
+            <% end %>
+
+            <a href="/schedules" class="nav__link">
+              <i class='bx bx-phone nav__icon'></i>
+              <span class="nav__name">Schedules</span>
+              <% total_not_done = @not_done_calls %>
+              <% if total_not_done > 0 %>
+                <span class="nav__notification"><%= total_not_done %></span>
+              <% end %>
+            </a>
+
+            <a href="/calendar" class="nav__link">
+              <i class='bx bx-calendar nav__icon'></i>
+              <span class="nav__name">Calendar</span>
+              <% total_not_done = @not_done_visits + @not_done_installations + @not_done_services %>
+              <% if total_not_done > 0 %>
+                <span class="nav__notification"><%= total_not_done %></span>
+              <% end %>
+            </a>
+
+          </div>
+        </div>
+      </div>
+      <a href="/logout" class="nav__link nav__logout">
+        <i class='bx bx-log-out nav__icon' ></i>
+        <span class="nav__name">Log Out</span>
+      </a>
+    </div>
+  </nav>
+</div>
+<main>
+  <section>
+    <form action="/submit_amount" method="post">
+      <div>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date" required>
+      </div>
+      <div>
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount">
+      </div>
+      <div>
+        <textarea type="text" id="details" name="details" placeholder="Enter the complete Transaction details here"></textarea>
+      </div>
+      <div>
+        <label for="category">Category:</label>
+        <select id="category" name="category">
+          <label for="category">Category:</label>
+            <option value="Nikhil Personal">Nikhil Personal</option>
+            <option value="Sales">Sales</option>
+            <option value="PR">PR</option>
+            <option value="Gate Stock">Gate Stock</option>
+            <option value="Salary">Salary</option>
+            <option value="Installation">Installation</option>
+            <option value="Civil">Civil</option>
+            <option value="R&D">R&D</option>
+            <option value="IT">IT</option>
+            <option value="Farm">Farm</option>
+            <option value="Pad Lock">Pad Lock"</option>
+            <option value="Leads">Leads</option>
+            <option value="General Office">General Office</option>
+            <option value="SH Stock">SH Stock</option>
+            <option value="Laptop Rent">Laptop Rent</option>
+            <option value="The Boys">The Boys</option>
+            <option value="Accomodation">Accomodation</option>
+            <option value="Solar">Solar</option>
+            <option value="Auto Debit">Auto Debit</option>
+            <option value="SS Stock">SS Stock</option>
+            <option value="Debt Amount">Debt Amount</option>
+            <option value="House">House</option>
+        </select>
+      </div>
+      <div>
+        <label for="type">Type:</label>
+        <select id="type" name="type">
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
+      </div>
+      <div>
+        <button type="submit">Submit</button>
+      </div>
+    </form>
+  </section>
+</main>
 </body>
 </html>

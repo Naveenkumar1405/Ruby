@@ -22,7 +22,7 @@ firebase = Firebase::Client.new(firebase_url, firebase_secret)
 
 ENV['TZ'] = 'UTC'
 set :bind, '0.0.0.0'
-set :port, 8080
+set :port, 80
 set :public_folder, 'public'
 enable :sessions
 
@@ -1324,7 +1324,11 @@ get '/customer_states_all_buckets/:name' do
 end
 
 get '/finance' do
-  erb :financial_tracker
+  if session[:user_uid]
+    erb :financial_tracker
+  else
+    redirect to('/login')
+  end
 end
 
 post '/submit_amount' do
@@ -1332,22 +1336,130 @@ post '/submit_amount' do
   amount = params[:amount].to_f
   category = params[:category]
   type = params[:type]
+  details = params[:details]
 
   parsed_date = Date.parse(date)
   year = parsed_date.year
-  month = parsed_date.month
+  month = parsed_date.strftime("%B")
   day = parsed_date.day
+  time = Time.now.to_i
+  base_path = "expense_tracker/#{type}/#{year}/#{month}"
+  transaction_path = "#{base_path}/#{day}/#{category}/#{time}"
+  transaction_data = { amount: amount, details: details }
+  response = firebase.set(transaction_path, transaction_data)
 
-  path = "expense_tracker/#{type}/#{year}/#{month}/#{day}"
-  data = { amount: amount, category: category }
-
-  # Set data to Firebase
-  response = firebase.set(path, data)
-
-  # Check response for success or failure
   if response.success?
     redirect '/finance'
   else
     "Error: #{response.body}"
   end
 end
+
+helpers do
+  def fetch_transactions(year, month_name)
+    transactions = []
+    ['expense', 'income'].each do |section|
+      path = "expense_tracker/#{section}/#{year}/#{month_name}"
+      response = firebase.get(path)
+      data = response.body if response.success?
+
+      next unless data.is_a?(Hash)
+
+      data.each do |day, categories|
+        categories.each do |category, transactions_details|
+          transactions_details.each do |timestamp, details|
+            transactions << {
+              'timestamp' => timestamp,
+              'date' => Date.strptime("#{day}-#{month_name}-#{year}", "%d-%B-%Y"),
+              'category' => category,
+              'details' => details['details'],
+              'amount' => details['amount'],
+              'section' => section.capitalize
+            }
+          end
+        end
+      end
+    end
+    transactions.sort_by! { |transaction| [transaction['date'], transaction['timestamp']] }
+    transactions
+  end
+end
+
+helpers do
+  def fetch_transactions_range(from_date, to_date)
+    expense_data = Hash.new(0)
+    income_data = Hash.new(0)
+
+    ['expense', 'income'].each do |section|
+      path = "expense_tracker/#{section}"
+      response = firebase.get(path)
+      data = response.body if response.success?
+
+      next unless data.is_a?(Hash)
+
+      data.each do |year, months|
+        months.each do |month_name, days|
+          begin
+            month = Date.strptime(month_name, "%B").month
+          rescue ArgumentError
+            next
+          end
+
+          days.each do |day, categories|
+            begin
+              date = Date.new(year.to_i, month, day.to_i)
+              next unless date >= from_date && date <= to_date
+            rescue ArgumentError
+              next
+            end
+
+            categories.each do |category, transactions|
+              transactions.each do |timestamp, details|
+                amount = details['amount'].to_f
+                if section == 'expense'
+                  expense_data[category] += amount
+                else
+                  income_data[category] += amount
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+    [expense_data, income_data]
+  end
+end
+
+get '/financial_analyser' do
+  if session[:user_uid]
+    current_year = Date.today.year.to_s
+    current_month = Date.today.strftime("%B")
+    @all_transactions = fetch_transactions(current_year, current_month)
+    erb :financial_analyser
+  else
+    redirect to('/login')
+  end
+end
+
+post '/change_month' do
+  if session[:user_uid]
+    year, month = params[:month_year].split('-')
+    month_name = Date.new(year.to_i, month.to_i).strftime("%B")
+    @all_transactions = fetch_transactions(year, month_name)
+    erb :financial_analyser
+  else
+    redirect to('/login')
+  end
+end
+
+post '/load_graphs' do
+  from_date = Date.parse(params[:from_date])
+  to_date = Date.parse(params[:to_date])
+
+  @expense_data, @income_data = fetch_transactions_range(from_date, to_date)
+  content_type :json
+  { expense_data: @expense_data, income_data: @income_data }.to_json
+end
+
