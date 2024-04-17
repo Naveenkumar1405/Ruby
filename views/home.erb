@@ -69,6 +69,21 @@
               </div>
             </div>
 
+          <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+          <% if allowed_departments.include?(@user_details['department']) %>
+            <div class="nav__dropdown">
+              <i class='bx bx-money nav__icon' ></i>
+              <span class="nav__name">Expense Tracker</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/finance" class="nav__dropdown-item">Update Transactions</a>
+                  <a href="/financial_analyser" class="nav__dropdown-item">Analysis</a>
+                </div>
+              </div>
+            </div>
+          <% end %>
+
           <div class="nav__items">
           <div class="nav__dropdown">
               <i class='bx bx-compass nav__icon' ></i>
