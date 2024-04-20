@@ -406,9 +406,9 @@
     </tr>
     </thead>
     <tbody>
-    <% @all_transactions.each do |transaction| %>
+    <% @all_transactions.sort_by { |transaction| -transaction['date'].to_time.to_i }.each do |transaction| %>
       <tr class="<%= transaction['section'].downcase %>">
-        <td><%= transaction['date'].strftime("%d-%B-%Y") %></td>
+        <td><%= transaction['date'].strftime("%d-%B") %></td>
         <td><%= transaction['category'] %></td>
         <td><%= transaction['details'] %></td>
         <td data-section="<%= transaction['section'] %>">₹ <%= transaction['amount'] %></td>

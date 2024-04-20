@@ -1462,4 +1462,3 @@ post '/load_graphs' do
   content_type :json
   { expense_data: @expense_data, income_data: @income_data }.to_json
 end
-
