@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-database.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="/img/fav.png">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+
+      .custom-container {
+          max-width: 100%;
+      }
+
+  </style>
+  <style>
+      .custom-table {
+          width: 100%;
+          border-collapse: collapse;
+      }
+
+      .custom-table th,
+      .custom-table td {
+          padding: 8px;
+          border: 1px solid #ddd;
+      }
+
+      .custom-table th {
+          background-color: #f2f2f2;
+          color: #333;
+          font-weight: bold;
+          text-align: left;
+      }
+
+      .custom-table tbody tr:nth-child(even) {
+          background-color: #f2f2f2;
+      }
+  </style>
+  <title>Onwords WorkSpace</title>
+</head>
+<body>
+<header class="header">
+  <div class="header__container">
+    <section class="modal container header__img">
+      <button class="modal__button" id="open-modal">
+        <i class='bx bx-star' id="header-toggle"></i>
+      </button>
+    </section>
+    <a href="#" class="header__logo">Onwords WorkSpace</a>
+    <div class="header__toggle">
+      <i class='bx bx-menu' id="header-toggle"></i>
+    </div>
+  </div>
+</header>
+
+<div class="nav" id="navbar">
+  <nav class="nav__container">
+    <div>
+      <img src="/img/onwords.svg" alt="Logo" class="nav__logo-name">
+      <div class="nav__list">
+        <div class="nav__items">
+
+          <a href="/" class="nav__link">
+            <i class='bx bx-home nav__icon'></i>
+            <span class="nav__name">Home</span>
+          </a>
+
+          <div class="nav__dropdown">
+            <i class='bx bx-user nav__icon'></i>
+            <span class="nav__name">Clients</span>
+            <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+            <div class="nav__dropdown-collapse">
+              <div class="nav__dropdown-content">
+                <a href="/states" class="nav__dropdown-item">Status</a>
+                <a href="/create_lead" class="nav__dropdown-item active">Create Lead</a>
+                <% allowed_departments = %w[ADMIN BRAVO] %>
+                <% if allowed_departments.include?(@user_details['department']) %>
+                  <a href="/bulk_assign" class="nav__dropdown-item">Bulk Assign</a>
+                <% end %>
+                <a href="/my_clients" class="nav__dropdown-item">My Clients</a>
+              </div>
+            </div>
+          </div>
+
+          <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+          <% if allowed_departments.include?(@user_details['department']) %>
+            <div class="nav__dropdown">
+              <i class='bx bx-money nav__icon' ></i>
+              <span class="nav__name">Expense Tracker</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/finance" class="nav__dropdown-item">Update Transactions</a>
+                  <a href="/financial_analyser" class="nav__dropdown-item">Analysis</a>
+                </div>
+              </div>
+            </div>
+          <% end %>
+
+          <% allowed_departments = %w[ADMIN BRAVO WEB INSTALLATION PR] %>
+          <% if allowed_departments.include?(@user_details['department']) %>
+            <a href="/installation_tracker" class="nav__link">
+              <i class='bx bx-wrench nav__icon active' ></i>
+              <span class="nav__name">Installation Tracking</span>
+            </a>
+          <% end %>
+
+          <div class="nav__items">
+            <div class="nav__dropdown">
+              <i class='bx bx-compass nav__icon' ></i>
+              <span class="nav__name">Files</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/invoice" class="nav__dropdown-item">Invoice</a>
+                  <a href="/proforma-invoice" class="nav__dropdown-item">Proforma</a>
+                  <a href="/quotation" class="nav__dropdown-item">Quotation</a>
+                </div>
+              </div>
+            </div>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/create_staff" class="nav__link">
+                <i class='bx bx-plus nav__icon' ></i>
+                <span class="nav__name">Create Staff</span>
+              </a>
+            <% end %>
+
+            <div class="nav__dropdown">
+              <i class='bx bx-smile nav__icon' ></i>
+              <span class="nav__name">Attendance</span>
+              <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+              <div class="nav__dropdown-collapse">
+                <div class="nav__dropdown-content">
+                  <a href="/attendance" class="nav__dropdown-item">Daily</a>
+                  <a href="/attendance/monthly_summary" class="nav__dropdown-item">Monthly</a>
+                </div>
+              </div>
+            </div>
+
+            <% allowed_departments = %w[ADMIN MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/notifications" class="nav__link">
+                <i class='bx bx-bell nav__icon' ></i>
+                <span class="nav__name">Notification</span>
+                <% if @unread_count && @unread_count > 0 %>
+                  <span class="nav__notification"><%= @unread_count %></span>
+                <% end %>
+              </a>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/inventory" class="nav__link">
+                <i class='bx bx-bookmark nav__icon' ></i>
+                <span class="nav__name">Inventory</span>
+              </a>
+            <% end %>
+
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/view_completed_schedules" class="nav__link">
+                <i class='bx bx-message-check nav__icon' ></i>
+                <span class="nav__name">Completion History</span>
+              </a>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT PR] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <div class="nav__dropdown">
+                <i class='bx bx-data nav__icon' ></i>
+                <span class="nav__name">Batch View</span>
+                <i class='bx bx-chevron-down nav__icon nav__dropdown-icon'></i>
+                <div class="nav__dropdown-collapse">
+                  <div class="nav__dropdown-content">
+                    <a href="/batch" class="nav__dropdown-item">Individual</a>
+                    <a href="/batch2" class="nav__dropdown-item">Overall</a>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/view_buckets" class="nav__link">
+                <i class='bx bx-bar-chart nav__icon' ></i>
+                <span class="nav__name">Bucket Analytics</span>
+              </a>
+            <% end %>
+
+            <% allowed_departments = %w[ADMIN BRAVO WEB MANAGEMENT] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/performance_tables" class="nav__link">
+                <i class='bx bx-stats nav__icon' ></i>
+                <span class="nav__name">TC Performance</span>
+              </a>
+            <% end %>
+
+            <a href="/schedules" class="nav__link">
+              <i class='bx bx-phone nav__icon'></i>
+              <span class="nav__name">Schedules</span>
+              <% total_not_done = @not_done_calls %>
+              <% if total_not_done > 0 %>
+                <span class="nav__notification"><%= total_not_done %></span>
+              <% end %>
+            </a>
+
+            <a href="/calendar" class="nav__link">
+              <i class='bx bx-calendar nav__icon'></i>
+              <span class="nav__name">Calendar</span>
+              <% total_not_done = @not_done_visits + @not_done_installations + @not_done_services %>
+              <% if total_not_done > 0 %>
+                <span class="nav__notification"><%= total_not_done %></span>
+              <% end %>
+            </a>
+
+          </div>
+        </div>
+      </div>
+      <a href="/logout" class="nav__link nav__logout">
+        <i class='bx bx-log-out nav__icon' ></i>
+        <span class="nav__name">Log Out</span>
+      </a>
+    </div>
+  </nav>
+</div>
+<main class="custom-container mt-4">
+  <section>
+    <form action="/submit_installation_tracker" method="post" class="card p-3 shadow">
+      <div class="form-row">
+        <div class="form-group col-md-3">
+          <label for="date">Date:</label>
+          <input type="date" id="date" name="date" class="form-control" required>
+        </div>
+        <div class="form-group col-md-3">
+          <label for="phone">Client Phone Number:</label>
+          <input type="text" id="phone" name="phone" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+          <label for="client">Client Name:</label>
+          <input type="text" id="client" name="client" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+          <label for="location">Location:</label>
+          <input type="text" id="location" name="location" class="form-control">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-3">
+          <label for="staff_name">Staff Name:</label>
+          <select id="staff_name" name="staff_name[]" class="form-control" multiple>
+            <% @staff_names.each do |name| %>
+              <option value="<%= name %>"><%= name %></option>
+            <% end %>
+          </select>
+        </div>
+        <div class="form-group col-md-3">
+          <label for="type">Type:</label>
+          <select id="type" name="type" class="form-control" onchange="toggleCustomType(this)">
+            <option value="Installation">Installation</option>
+            <option value="Tech Visit">Tech Visit</option>
+            <option value="Service Visit">Service Visit</option>
+            <option value="Office Work">Office Work</option>
+            <option value="Custom">Custom</option>
+          </select>
+
+          <div id="customTypeInput" style="display: none;">
+            <label for="customType">Enter Custom Type:</label>
+            <input type="text" id="customType" name="customType" class="form-control">
+          </div>
+
+        </div>
+        <div class="form-group col-md-6">
+          <label for="issues">Issues / Comments (optional):</label>
+          <textarea id="issues" name="issues" class="form-control" placeholder="Describe any issues"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-3">
+          <label for="Amount">Amount:</label>
+          <input type="number" id="Amount" name="Amount" class="form-control" required>
+        </div>
+        <div class="form-group col-md-3">
+          <label for="Hardware">Hardware</label>
+          <input type="text" id="Hardware" name="Hardware" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+          <label for="Hardware_Expense">Hardware Expense</label>
+          <input type="number" id="Hardware_Expense" name="Hardware_Expense" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+          <label for="Travel_Expense">Travel Expense (Bookings If Any)</label>
+          <input type="number" id="Travel_Expense" name="Travel_Expense" class="form-control">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="col-md-12 d-flex justify-content-center">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <div class="custom-container mt-5">
+      <h2>Installation Records</h2>
+      <table class="table table-hover custom-table">
+        <thead class="thead-dark">
+        <tr>
+          <th>Date</th>
+          <th>Client Phone Number</th>
+          <th>Client Name</th>
+          <th>Location</th>
+          <th>Staff Names</th>
+          <th>Type</th>
+          <th>Allowance Issued</th>
+          <th>Hardwares</th>
+          <th>Hardware Expense</th>
+          <th>Travel Expense</th>
+          <th>Issues</th>
+          <th>Total Expense</th> <!-- New column -->
+        </tr>
+        </thead>
+        <tbody>
+        <% @installation_records.each do |record| %>
+          <tr>
+            <td><%= record['date'] || 'N/A' %></td>
+            <td><%= record['phone_number'] || 'N/A' %></td>
+            <td><%= record['client_name'] || 'N/A' %></td>
+            <td><%= record['location'] || 'N/A' %></td>
+            <td><%= record['staff_name'] || 'N/A' %></td>
+            <td><%= record['category'] || 'N/A' %></td>
+            <td><%= record['amount'] || 'N/A' %></td>
+            <td><%= record['hardware'] || 'N/A' %></td>
+            <td><%= record['hardware_expense'] || 'N/A' %></td>
+            <td><%= record['travel_expense'] || 'N/A' %></td>
+            <td><%= record['issues'] || 'N/A' %></td>
+            <td><%= calculateTotalExpense(record) %></td> <!-- Call helper method -->
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script>
+        function toggleCustomType(select) {
+        var customInputDiv = document.getElementById('customTypeInput');
+
+        if (select.value === 'Custom') {
+        customInputDiv.style.display = 'block'; // Show the custom type input
+        } else {
+        customInputDiv.style.display = 'none';  // Hide the custom type input
+         }
+      }
+</script>
+<script>
+    // Function to calculate the total expense
+    function calculateTotalExpense(record) {
+        let amount = record['amount'] ? parseFloat(record['amount']) : 0;
+        let hardwareExpense = record['hardware_expense'] ? parseFloat(record['hardware_expense']) : 0;
+        let travelExpense = record['travel_expense'] ? parseFloat(record['travel_expense']) : 0;
+        let totalExpense = amount + hardwareExpense + travelExpense;
+        return isNaN(totalExpense) ? 'N/A' : totalExpense.toFixed(2);
+    }
+</script>
+<script>
+    // Firebase configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyCCTeiCYTB_npcWKKxl-Oj0StQLTmaFOaE",
+        authDomain: "marketing-data-d141d.firebaseapp.com",
+        databaseURL: "https://marketing-data-d141d-default-rtdb.firebaseio.com/",
+        projectId: "marketing-data-d141d",
+        storageBucket: "marketing-data-d141d.appspot.com",
+        appId: "566962550940"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    var database = firebase.database();
+
+    function fetchCustomerDetails(phoneNumber) {
+        database.ref('customer/' + phoneNumber).once('value').then((snapshot) => {
+            if (snapshot.exists()) {
+                var data = snapshot.val();
+                document.getElementById('client').value = data.name || '';
+                document.getElementById('location').value = data.city || '';
+            } else {
+                console.log("No data available for this phone number.");
+            }
+        }).catch((error) => {
+            console.error(error);
+        });
+    }
+
+    window.addEventListener('DOMContentLoaded', (event) => {
+        document.getElementById('phone').addEventListener('blur', function() {
+            fetchCustomerDetails(this.value);
+        });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneInput = document.getElementById('phone');
+        const clientInput = document.getElementById('client');
+        const locationInput = document.getElementById('location');
+
+        phoneInput.addEventListener('blur', function() {
+            fetchCustomerDetails(this.value);
+            this.style.borderColor = this.value ? '#28a745' : '#dc3545';
+        });
+
+        phoneInput.addEventListener('input', function() {
+            if (this.value.length === 10) {
+                this.style.borderColor = '#28a745';
+            } else {
+                this.style.borderColor = '#ffc107';
+            }
+        });
+    });
+</script>
+
+</body>
+
+</html>

@@ -104,6 +104,14 @@
               </div>
             </div>
 
+            <% allowed_departments = %w[ADMIN BRAVO WEB INSTALLATION] %>
+            <% if allowed_departments.include?(@user_details['department']) %>
+              <a href="/installation_tracker" class="nav__link">
+                <i class='bx bx-wrench nav__icon' ></i>
+                <span class="nav__name">Installation Tracking</span>
+              </a>
+            <% end %>
+
             <% allowed_departments = %w[ADMIN MANAGEMENT] %>
             <% if allowed_departments.include?(@user_details['department']) %>
               <a href="/notifications" class="nav__link">

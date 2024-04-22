@@ -1462,3 +1462,116 @@ post '/load_graphs' do
   content_type :json
   { expense_data: @expense_data, income_data: @income_data }.to_json
 end
+
+helpers do
+  def calculateTotalExpense(record)
+    amount = record['amount'] ? record['amount'].to_f : 0
+    hardwareExpense = record['hardware_expense'] ? record['hardware_expense'].to_f : 0
+    travelExpense = record['travel_expense'] ? record['travel_expense'].to_f : 0
+    totalExpense = amount + hardwareExpense + travelExpense
+    totalExpense.nan? ? 'N/A' : format('%.2f', totalExpense)
+  end
+end
+
+get '/installation_tracker' do
+  if session[:user_uid]
+    current_year = Date.today.year.to_s
+    current_month = Date.today.strftime("%B")
+
+    begin
+      staff_response = firebase.get('staff_details')
+      if staff_response.success?
+        all_staff = staff_response.body
+        @staff_names = all_staff.select { |_uid, details| details['department'] == 'INSTALLATION' }.map { |_uid, details| details['name'] }
+      else
+        @staff_names = []
+        puts "Failed to fetch staff details: #{staff_response.status}"
+      end
+    rescue => e
+      @staff_names = []
+      puts "Error fetching staff details: #{e.message}"
+    end
+
+    @installation_records = []
+
+    path = "installation_tracker/#{current_year}/#{current_month}"
+    response = firebase.get(path)
+
+    if response.success? && response.body.is_a?(Hash)
+      response.body.each do |day, types|
+        types.each do |type, clients|
+          clients.each do |phone_number, details|
+            if details.is_a?(Hash)
+              @installation_records << {
+                'phone_number' => phone_number,
+                'date' => Date.strptime("#{day}-#{current_month}-#{current_year}", "%d-%B-%Y").to_s,
+                'category' => type,
+                'client_name' => details['client_name'] || "N/A",
+                'issues' => details['issues'] || "N/A",
+                'location' => details['location'] || "N/A",
+                'staff_name' => (details['staff_name'] || []).join(", "),
+                'amount' => details['amount'] || "N/A",
+                'hardware' => details['hardware'] || "N/A",
+                'hardware_expense' => details['hardware_expense'] || "N/A",
+                'travel_expense' => details['travel_expense'] || "N/A",
+              }
+            end
+          end
+        end
+      end
+    else
+      puts "Failed to fetch data or incorrect data format"
+    end
+
+    erb :installation_tracker
+
+  else
+    redirect to('/login')
+  end
+end
+
+post '/submit_installation_tracker' do
+  date = params[:date]
+  phone = params[:phone]
+  client = params[:client]
+  location = params[:location]
+  staff_name = params[:staff_name]
+  type = params[:type]
+  custom_type = params[:customType] if type == "Custom"
+  issues = params[:issues]
+  amount = params[:Amount]
+  hardware = params[:Hardware]
+  hardware_expense = params[:Hardware_Expense]
+  travel_expense = params[:Travel_Expense]
+
+  require 'date'
+  parsed_date = Date.parse(date)
+  year = parsed_date.year
+  month = parsed_date.strftime("%B")
+  day = parsed_date.day
+
+  if custom_type
+    base_path = "installation_tracker/#{year}/#{month}/#{day}/#{custom_type}/#{phone}"
+  else
+    base_path = "installation_tracker/#{year}/#{month}/#{day}/#{type}/#{phone}"
+  end
+
+  installation_data = {
+    client_name: client,
+    location: location,
+    staff_name: staff_name,
+    issues: issues,
+    amount: amount,
+    hardware:hardware,
+    hardware_expense: hardware_expense,
+    travel_expense: travel_expense
+  }
+
+  response = firebase.set(base_path, installation_data)
+
+  if response.success?
+    redirect '/installation_tracker'
+  else
+    "Error: #{response.body}"
+  end
+end
