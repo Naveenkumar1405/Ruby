@@ -259,6 +259,14 @@
           <i class="fas fa-map-marker-alt"></i>
           <input type="text" id="location" name="location" placeholder="Location" required>
         </div>
+        <div class="icon-input">
+          <select name="lead_incharge">
+            <option value="">Assign In-charge</option>
+            <% @staff_names.each do |name, uid| %>
+              <option value="<%= name %>"><%= name %></option>
+            <% end %>
+          </select>
+        </div>
         <input type="submit" value="Submit" class="submit-button">
       </form>
       <div id="message-container"></div>

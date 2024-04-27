@@ -657,7 +657,7 @@ get '/create_lead' do
     staff_response = firebase.get('staff_details')
     all_staff = staff_response.body
     @user_details = get_staff_details(uid)
-    @staff_names = all_staff.select { |_uid, details| details['department'] == 'PR' }.map { |_uid, details| [details['name'], _uid] }
+    @staff_names = all_staff.select { |_uid, details| details['department'] == 'PR' || details['department'] == 'BRAVO' }.map { |_uid, details| [details['name'], _uid] }
 
     if @user_details
       erb :create_lead
@@ -750,6 +750,7 @@ post '/create_custom_lead' do
   uid = session[:user_uid]
   user_details = get_staff_details(uid)
   name = params[:name]
+  lead_incharge = params[:lead_incharge].to_s.empty? ? "Not Assigned" : params[:lead_incharge]
   phone_number = params[:phone]
   email_id = params[:email]
   inquired_for = params[:enquiredFor]
@@ -757,7 +758,7 @@ post '/create_custom_lead' do
   location = params[:location]
   current_date = Date.today.to_s
   current_time = Time.now.strftime("%H:%M:%S")
-  lead_data = { "name" => name, "email_id" => email_id, "inquired_for" => inquired_for, "phone_number" => phone_number, "data_fetched_by" => data_fetched_by, "created_by" => user_details ? user_details['name'] : "Unknown", "created_date" => current_date, "created_time" => current_time, "customer_state" => "New leads", "LeadIncharge" => "Not Assigned", "city" => location }
+  lead_data = { "name" => name, "email_id" => email_id, "inquired_for" => inquired_for, "phone_number" => phone_number, "data_fetched_by" => data_fetched_by, "created_by" => user_details ? user_details['name'] : "Unknown", "created_date" => current_date, "created_time" => current_time, "customer_state" => "New leads", "LeadIncharge" => lead_incharge, "city" => location }
   firebase.update("customer/#{phone_number}", lead_data)
   "Lead created successfully for phone number: #{phone_number}"
 end
