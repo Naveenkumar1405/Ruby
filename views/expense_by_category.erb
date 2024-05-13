@@ -2,11 +2,211 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <title>Expenses by Category</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+      }
+
+      .category-section {
+          margin-bottom: 20px;
+      }
+
+      .categories-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 10px;
+      }
+
+      .category {
+          padding: 10px;
+          background-color: #f8f8f8;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+      }
+
+      .category a {
+          text-decoration: none;
+          color: #333;
+      }
+  </style>
+  <script>
+      function fetchCategoryDetails(type, category) {
+          fetch(`/ajax/category_details/${type}/${encodeURIComponent(category)}`)
+              .then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      const table = document.createElement('table');
+                      table.innerHTML = `
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Details</th>
+              </tr>
+            `;
+                      data.transactions.forEach(transaction => {
+                          const row = table.insertRow();
+                          row.innerHTML = `
+                <td>${transaction.day}</td>
+                <td>$${parseFloat(transaction.amount).toFixed(2)}</td>
+                <td>${transaction.details}</td>
+              `;
+                      });
+                      document.getElementById('details').innerHTML = ''; // Clear previous details
+                      document.getElementById('details').appendChild(table);
+                  } else {
+                      document.getElementById('details').innerHTML = 'Error loading details.';
+                  }
+              });
+      }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="/css/styles.css">
-  <link rel="stylesheet" href="/css/finance.css">
+  <style>
+      .total-boxes {
+          display: flex;
+          justify-content: space-around;
+          margin-bottom: 20px;
+      }
+      .total-box {
+          padding: 20px;
+          border-radius: 5px;
+          color: #fff;
+          width: 30%;
+          text-align: center;
+      }
+      .expense-box {
+          background-color: #FF6347;
+      }
+      .income-box {
+          background-color: #32CD32;
+          color: #00008B;
+      }
+      .modal {
+          display: none;
+          position: fixed;
+          z-index: 1;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background-color: rgba(0, 0, 0, 0.4);
+          padding-top: 50px;
+      }
+      .modal-content {
+          background-color: #fefefe;
+          margin: auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 50%;
+      }
+      .close {
+          color: #aaa;
+          float: right;
+          font-size: 28px;
+          font-weight: bold;
+      }
+      .close:hover,
+      .close:focus {
+          color: black;
+          text-decoration: none;
+          cursor: pointer;
+      }
+      .forms-container {
+          display: flex;
+          justify-content: center;
+          align-items: flex-start; /* Adjusted to align the top of the forms */
+          padding: 20px;
+          gap: 20px; /* Space between forms */
+      }
+      .form-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+      }
+      form {
+          display: flex;
+          width: 100%; /* Full width of the form wrapper */
+      }
+      .input-group {
+          flex: 1; /* Takes full width dynamically */
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+      }
+      input[type="date"],
+      input[type="month"],
+      button {
+          width: 90%; /* Adjust width for internal elements */
+          padding: 10px;
+          margin: 5px;
+          border: 2px solid #ccc;
+          border-radius: 5px;
+      }
+      button {
+          background-color: #0772ed;
+          color: #ffffff;
+          font-weight: bold;
+          cursor: pointer;
+          border-color: black;
+      }
+
+      table {
+          width: 100%;
+          border-collapse: collapse;
+      }
+      th, td {
+          border: 1px solid #ddd;
+          padding: 8px;
+      }
+      th {
+          background-color: #f2f2f2;
+      }
+      .expense {
+          background-color: #ffb3b3;
+      }
+      .income {
+          background-color: #b3ffb3;
+      }
+      .total {
+          font-weight: bold;
+          font-size: 26px;
+      }
+      .modal {
+          display: none;
+          position: fixed;
+          z-index: 1;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background-color: rgba(0, 0, 0, 0.4);
+          padding-top: 50px;
+      }
+      .modal-content {
+          background-color: #fefefe;
+          margin: 5% auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%;
+      }
+      .close {
+          color: #aaa;
+          float: right;
+          font-size: 28px;
+          font-weight: bold;
+      }
+      .close:hover,
+      .close:focus {
+          color: black;
+          text-decoration: none;
+          cursor: pointer;
+      }
+  </style>
   <link rel="icon" type="image/x-icon" href="/img/fav.png">
   <title>Onwords WorkSpace</title>
 </head>
@@ -24,21 +224,6 @@
     </div>
   </div>
 </header>
-<div class="modal__container" id="modal-container">
-  <div class="modal__content">
-    <div class="modal__close close-modal" title="Close">
-      <i class='bx bx-x'></i>
-    </div>
-    <img src="<%= @user_details['profileImage'] %>" alt="Profile Image" class="modal__img">
-    <h1 class="modal__title"><%= @user_details['name'] %></h1>
-    <p class="modal__description"><%= @user_details['mobile'] %></p>
-    <p class="modal__description"><%= @user_details['email'] %></p>
-    <p class="modal__description"><%= Time.at(@user_details['dob'].to_i / 1000).strftime("%d-%m-%Y") %></p>
-    <button class="modal__button modal__button-width">
-      <%= @user_details['department'] %>
-    </button>
-  </div>
-</div>
 
 <div class="nav" id="navbar">
   <nav class="nav__container">
@@ -51,14 +236,6 @@
             <i class='bx bx-home nav__icon'></i>
             <span class="nav__name">Home</span>
           </a>
-
-          <% allowed_departments = %w[ADMIN BRAVO WEB INSTALLATION] %>
-          <% if allowed_departments.include?(@user_details['department']) %>
-            <a href="/installation_tracker" class="nav__link">
-              <i class='bx bx-wrench nav__icon' ></i>
-              <span class="nav__name">Installation Tracking</span>
-            </a>
-          <% end %>
 
           <div class="nav__dropdown">
             <i class='bx bx-user nav__icon'></i>
@@ -91,6 +268,14 @@
                 </div>
               </div>
             </div>
+          <% end %>
+
+          <% allowed_departments = %w[ADMIN BRAVO WEB INSTALLATION] %>
+          <% if allowed_departments.include?(@user_details['department']) %>
+            <a href="/installation_tracker" class="nav__link">
+              <i class='bx bx-wrench nav__icon' ></i>
+              <span class="nav__name">Installation Tracking</span>
+            </a>
           <% end %>
 
           <div class="nav__items">
@@ -216,59 +401,74 @@
   </nav>
 </div>
 <main>
-  <section>
-    <form action="/submit_amount" method="post">
-      <div>
-        <label for="date">Date:</label>
-        <input type="date" id="date" name="date" required>
-      </div>
-      <div>
-        <label for="amount">Amount:</label>
-        <input type="number" id="amount" name="amount">
-      </div>
-      <div>
-        <textarea type="text" id="details" name="details" placeholder="Enter the complete Transaction details here"></textarea>
-      </div>
-      <div>
-        <label for="category">Category:</label>
-        <select id="category" name="category">
-          <label for="category">Category:</label>
-            <option value="Nikhil Personal">Nikhil Personal</option>
-            <option value="Sales">Sales</option>
-            <option value="PR">PR</option>
-            <option value="Gate Stock">Gate Stock</option>
-            <option value="Salary">Salary</option>
-            <option value="Installation">Installation</option>
-            <option value="Civil">Civil</option>
-            <option value="R&D">R&D</option>
-            <option value="IT">IT</option>
-            <option value="Farm">Farm</option>
-            <option value="Pad Lock">Pad Lock"</option>
-            <option value="Leads">Leads</option>
-            <option value="General Office">General Office</option>
-            <option value="SH Stock">SH Stock</option>
-            <option value="Laptop Rent">Laptop Rent</option>
-            <option value="The Boys">The Boys</option>
-            <option value="Accomodation">Accomodation</option>
-            <option value="Solar">Solar</option>
-            <option value="Auto Debit">Auto Debit</option>
-            <option value="SS Stock">SS Stock</option>
-            <option value="Debt Amount">Debt Amount</option>
-            <option value="House">House</option>
-        </select>
-      </div>
-      <div>
-        <label for="type">Type:</label>
-        <select id="type" name="type">
-          <option value="expense">Expense</option>
-          <option value="income">Income</option>
-        </select>
-      </div>
-      <div>
-        <button type="submit">Submit</button>
-      </div>
-    </form>
-  </section>
+
+<h1>Expenses by Category for <%= Date.today.strftime("%B %Y") %></h1>
+
+<div class="category-section">
+  <h2>Income</h2>
+  <div class="categories-grid">
+    <% if @income_by_category.empty? %>
+      <p>No income records found for this month.</p>
+    <% else %>
+      <% @income_by_category.each do |category, amount| %>
+        <div class="category">
+          <a href="javascript:void(0)" onclick="fetchCategoryDetails('income', '<%= category %>')">
+            <%= category %>
+          </a>: ₹<%= sprintf("%.2f", amount) %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<div class="category-section">
+  <h2>Expenses</h2>
+  <div class="categories-grid">
+    <% if @expense_by_category.empty? %>
+      <p>No expense records found for this month.</p>
+    <% else %>
+      <% @expense_by_category.each do |category, amount| %>
+        <div class="category">
+          <a href="javascript:void(0)" onclick="fetchCategoryDetails('expense', '<%= category %>')">
+            <%= category %>
+          </a>: ₹<%= sprintf("%.2f", amount) %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<div id="details"></div> <!-- Container for transaction details -->
 </main>
+<script>
+    function fetchCategoryDetails(type, category) {
+        fetch(`/ajax/category_details/${type}/${encodeURIComponent(category)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const table = document.createElement('table');
+                    table.innerHTML = `
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Details</th>
+              </tr>
+            `;
+                    data.transactions.forEach(transaction => {
+                        const row = table.insertRow();
+                        row.innerHTML = `
+                <td>${transaction.day}</td>
+                <td>${parseFloat(transaction.amount).toFixed(2)}</td>
+                <td>${transaction.details}</td>
+              `;
+                    });
+                    document.getElementById('details').innerHTML = ''; // Clear previous details
+                    document.getElementById('details').appendChild(table);
+                } else {
+                    document.getElementById('details').innerHTML = 'Error loading details.';
+                }
+            });
+    }
+</script>
 </body>
 </html>
