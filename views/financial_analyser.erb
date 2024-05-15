@@ -421,7 +421,7 @@
             <td><%= transaction['details'] %></td>
             <td data-section="<%= transaction['section'] %>">₹ <%= transaction['amount'] %></td>
             <td>
-              <button onclick="deleteTransaction('<%= transaction['section'] %>', '<%= transaction['date'].year %>', '<%= transaction['date'].strftime('%B') %>', '<%= transaction['date'].strftime("%d") %>', '<%= transaction['category'] %>', '<%= transaction['timestamp'] %>')">Delete</button>
+              <button onclick="deleteTransaction('<%= transaction['section'].downcase %>', '<%= transaction['date'].year %>', '<%= transaction['date'].strftime('%B') %>', '<%= transaction['date'].strftime("%d") %>', '<%= transaction['category'] %>', '<%= transaction['timestamp'] %>')">Delete</button>
             </td>
           </tr>
         <% end %>
