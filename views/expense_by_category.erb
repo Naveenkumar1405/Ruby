@@ -30,181 +30,113 @@
           color: #333;
       }
   </style>
-  <script>
-      function fetchCategoryDetails(type, category) {
-          fetch(`/ajax/category_details/${type}/${encodeURIComponent(category)}`)
-              .then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      const table = document.createElement('table');
-                      table.innerHTML = `
-              <tr>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Details</th>
-              </tr>
-            `;
-                      data.transactions.forEach(transaction => {
-                          const row = table.insertRow();
-                          row.innerHTML = `
-                <td>${transaction.day}</td>
-                <td>$${parseFloat(transaction.amount).toFixed(2)}</td>
-                <td>${transaction.details}</td>
-              `;
-                      });
-                      document.getElementById('details').innerHTML = ''; // Clear previous details
-                      document.getElementById('details').appendChild(table);
-                  } else {
-                      document.getElementById('details').innerHTML = 'Error loading details.';
-                  }
-              });
-      }
-  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="/css/styles.css">
   <style>
-      .total-boxes {
-          display: flex;
-          justify-content: space-around;
-          margin-bottom: 20px;
-      }
-      .total-box {
-          padding: 20px;
-          border-radius: 5px;
-          color: #fff;
-          width: 30%;
-          text-align: center;
-      }
-      .expense-box {
-          background-color: #FF6347;
-      }
-      .income-box {
-          background-color: #32CD32;
-          color: #00008B;
-      }
-      .modal {
-          display: none;
-          position: fixed;
-          z-index: 1;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          overflow: auto;
-          background-color: rgba(0, 0, 0, 0.4);
-          padding-top: 50px;
-      }
-      .modal-content {
-          background-color: #fefefe;
-          margin: auto;
-          padding: 20px;
-          border: 1px solid #888;
-          width: 50%;
-      }
-      .close {
-          color: #aaa;
-          float: right;
-          font-size: 28px;
-          font-weight: bold;
-      }
-      .close:hover,
-      .close:focus {
-          color: black;
-          text-decoration: none;
-          cursor: pointer;
-      }
-      .forms-container {
-          display: flex;
-          justify-content: center;
-          align-items: flex-start; /* Adjusted to align the top of the forms */
-          padding: 20px;
-          gap: 20px; /* Space between forms */
+      main {
+          max-width: 1400px;
       }
       .form-wrapper {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
+          margin-bottom: 20px;
       }
-      form {
-          display: flex;
-          width: 100%; /* Full width of the form wrapper */
-      }
+
       .input-group {
-          flex: 1; /* Takes full width dynamically */
           display: flex;
-          flex-direction: column;
           align-items: center;
       }
-      input[type="date"],
+
       input[type="month"],
       button {
-          width: 90%; /* Adjust width for internal elements */
           padding: 10px;
-          margin: 5px;
-          border: 2px solid #ccc;
+          margin-right: 10px;
           border-radius: 5px;
+          border: 1px solid #ccc;
+          background-color: #f8f8f8;
       }
+
       button {
           background-color: #0772ed;
-          color: #ffffff;
+          color: #fff;
           font-weight: bold;
           cursor: pointer;
           border-color: black;
       }
 
+      .category-section {
+          margin-bottom: 20px;
+      }
+
+      .category-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+      }
+
+      .category-header h2 {
+          margin: 0;
+      }
+
+      .total-boxes {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 20px;
+      }
+
+      .total-box {
+          padding: 10px;
+          border-radius: 5px;
+          color: #fff;
+          text-align: center;
+      }
+
+      .expense-box {
+          background-color: #FF6347;
+      }
+
+      .income-box {
+          background-color: #32CD32;
+          color: #00008B;
+      }
+
+      .categories-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 10px;
+      }
+
+      .category {
+          padding: 10px;
+          background-color: #f8f8f8;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+      }
+
+      .category a {
+          text-decoration: none;
+          color: #333;
+      }
+
       table {
           width: 100%;
           border-collapse: collapse;
+          margin-top: 20px;
+          margin-bottom: 40px;
       }
+
       th, td {
           border: 1px solid #ddd;
           padding: 8px;
       }
+
       th {
           background-color: #f2f2f2;
       }
-      .expense {
-          background-color: #ffb3b3;
-      }
-      .income {
-          background-color: #b3ffb3;
-      }
       .total {
           font-weight: bold;
-          font-size: 26px;
-      }
-      .modal {
-          display: none;
-          position: fixed;
-          z-index: 1;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          overflow: auto;
-          background-color: rgba(0, 0, 0, 0.4);
-          padding-top: 50px;
-      }
-      .modal-content {
-          background-color: #fefefe;
-          margin: 5% auto;
-          padding: 20px;
-          border: 1px solid #888;
-          width: 80%;
-      }
-      .close {
-          color: #aaa;
-          float: right;
-          font-size: 28px;
-          font-weight: bold;
-      }
-      .close:hover,
-      .close:focus {
-          color: black;
-          text-decoration: none;
-          cursor: pointer;
+          font-size: 36px;
       }
   </style>
   <link rel="icon" type="image/x-icon" href="/img/fav.png">
@@ -213,18 +145,9 @@
 <body>
 <header class="header">
   <div class="header__container">
-    <section class="modal container header__img">
-      <button class="modal__button" id="open-modal">
-        <i class='bx bx-star' id="header-toggle"></i>
-      </button>
-    </section>
-    <a href="#" class="header__logo">Onwords WorkSpace</a>
-    <div class="header__toggle">
-      <i class='bx bx-menu' id="header-toggle"></i>
-    </div>
+    <a href="/" class="header__logo">Onwords WorkSpace</a>
   </div>
 </header>
-
 <div class="nav" id="navbar">
   <nav class="nav__container">
     <div>
@@ -402,47 +325,67 @@
 </div>
 <main>
 
-<h1>Expenses by Category for <%= Date.today.strftime("%B %Y") %></h1>
-
-<div class="category-section">
-  <h2>Income</h2>
-  <div class="categories-grid">
-    <% if @income_by_category.empty? %>
-      <p>No income records found for this month.</p>
-    <% else %>
-      <% @income_by_category.each do |category, amount| %>
-        <div class="category">
-          <a href="javascript:void(0)" onclick="fetchCategoryDetails('income', '<%= category %>')">
-            <%= category %>
-          </a>: ₹<%= sprintf("%.2f", amount) %>
-        </div>
+  <div class="form-wrapper">
+    <form action="/get_categories_by_month" method="post">
+      <div class="input-group">
+        <input type="month" name="month_year" required>
+        <button type="submit">Monthly Data</button>
+      </div>
+      <% if defined?(year) && defined?(month) %>
+        <p>Selected Month: <%= month %> <%= year %></p>
       <% end %>
-    <% end %>
+    </form>
   </div>
-</div>
 
-<div class="category-section">
-  <h2>Expenses</h2>
-  <div class="categories-grid">
-    <% if @expense_by_category.empty? %>
-      <p>No expense records found for this month.</p>
-    <% else %>
-      <% @expense_by_category.each do |category, amount| %>
-        <div class="category">
-          <a href="javascript:void(0)" onclick="fetchCategoryDetails('expense', '<%= category %>')">
-            <%= category %>
-          </a>: ₹<%= sprintf("%.2f", amount) %>
-        </div>
+  <div class="category-section">
+    <div class="category-header">
+      <h2>Income</h2>
+      <div id="totals" class="total-box expense-box">
+        <p>₹<span id="total_expense"><%= total_income.to_i %></span></p>
+      </div>
+    </div>
+    <div class="categories-grid income-table income">
+      <% if @income_by_category.empty? %>
+        <p>No income records found for this month.</p>
+      <% else %>
+        <% @income_by_category.each do |category, amount| %>
+          <div class="category">
+            <a href="javascript:void(0)" onclick="fetchCategoryDetails('income', '<%= category %>', '<%= year %>', '<%= month %>')">
+              <%= category %>
+            </a>: ₹<%= amount.to_i %>
+          </div>
+        <% end %>
       <% end %>
-    <% end %>
+    </div>
   </div>
-</div>
 
-<div id="details"></div> <!-- Container for transaction details -->
+  <div class="category-section">
+    <div class="category-header">
+      <h2>Expenses</h2>
+      <div id="totals" class="total-box income-box">
+        <p>₹<span id="total_income"><%= total_expense.to_i %></span></p>
+      </div>
+    </div>
+    <div class="categories-grid expense-table expense">
+      <% if @expense_by_category.empty? %>
+        <p>No expense records found for this month.</p>
+      <% else %>
+        <% @expense_by_category.each do |category, amount| %>
+          <div class="category">
+            <a href="javascript:void(0)" onclick="fetchCategoryDetails('expense', '<%= category %>', '<%= year %>', '<%= month %>')">
+              <%= category %>
+            </a>: ₹<%= amount.to_i %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <div id="details"></div>
 </main>
 <script>
-    function fetchCategoryDetails(type, category) {
-        fetch(`/ajax/category_details/${type}/${encodeURIComponent(category)}`)
+    function fetchCategoryDetails(type, category, year, month) {
+        fetch(`/category_details/${type}/${encodeURIComponent(category)}?year=${year}&month=${encodeURIComponent(month)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -458,7 +401,7 @@
                         const row = table.insertRow();
                         row.innerHTML = `
                 <td>${transaction.day}</td>
-                <td>${parseFloat(transaction.amount).toFixed(2)}</td>
+                <td>${parseFloat(transaction.amount).toFixed(0)}</td>
                 <td>${transaction.details}</td>
               `;
                     });

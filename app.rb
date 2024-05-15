@@ -1332,30 +1332,6 @@ get '/finance' do
   end
 end
 
-post '/submit_amount' do
-  date = params[:date]
-  amount = params[:amount].to_f
-  category = params[:category]
-  type = params[:type]
-  details = params[:details]
-
-  parsed_date = Date.parse(date)
-  year = parsed_date.year
-  month = parsed_date.strftime("%B")
-  day = parsed_date.day
-  time = Time.now.to_i
-  base_path = "expense_tracker/#{type}/#{year}/#{month}"
-  transaction_path = "#{base_path}/#{day}/#{category}/#{time}"
-  transaction_data = { amount: amount, details: details }
-  response = firebase.set(transaction_path, transaction_data)
-
-  if response.success?
-    redirect '/finance'
-  else
-    "Error: #{response.body}"
-  end
-end
-
 get '/installation_tracker' do
   if session[:user_uid]
     current_year = Date.today.year.to_s
@@ -1459,6 +1435,30 @@ post '/submit_installation_tracker' do
   end
 end
 
+post '/submit_amount' do
+  date = params[:date]
+  amount = params[:amount].to_f
+  category = params[:category]
+  type = params[:type]
+  details = params[:details]
+
+  parsed_date = Date.parse(date)
+  year = parsed_date.year
+  month = parsed_date.strftime("%B")
+  day = parsed_date.day
+  time = Time.now.to_i
+  base_path = "expense_tracker/#{type}/#{year}/#{month}"
+  transaction_path = "#{base_path}/#{day}/#{category}/#{time}"
+  transaction_data = { amount: amount, details: details }
+  response = firebase.set(transaction_path, transaction_data)
+
+  if response.success?
+    redirect '/finance'
+  else
+    "Error: #{response.body}"
+  end
+end
+
 helpers do
   def fetch_transactions(year, month_name)
     transactions = []
@@ -1536,6 +1536,30 @@ helpers do
   end
 end
 
+delete '/delete_transaction/:type/:year/:month/:day/:category/:timestamp' do
+  type = params[:type]
+  year = params[:year]
+  month = params[:month]
+  day = params[:day]
+  category = params[:category]
+  timestamp = params[:timestamp]
+
+  base_path = "expense_tracker/#{type}/#{year}/#{month}/#{day}/#{category}"
+  transaction_path = "#{base_path}/#{timestamp}"
+
+  response = firebase.delete(transaction_path)
+
+  if response.success?
+    status 200
+    content_type :json
+    { success: true }.to_json
+  else
+    status 500
+    content_type :json
+    { success: false, error: "Failed to delete transaction" }.to_json
+  end
+end
+
 get '/financial_analyser' do
   if session[:user_uid]
     current_year = Date.today.year.to_s
@@ -1604,21 +1628,40 @@ get '/expense_by_category' do
 
     @income_by_category = fetch_and_aggregate_expenses("income", current_year, current_month)
     @expense_by_category = fetch_and_aggregate_expenses("expense", current_year, current_month)
+    @total_income = @income_by_category.values.sum
+    @total_expense = @expense_by_category.values.sum
 
-    erb :expense_by_category
+    erb :expense_by_category, locals: { year: current_year, month: current_month, total_income: @total_income, total_expense: @total_expense }
   else
     redirect to('/login')
   end
 end
 
-get '/ajax/category_details/:type/:category' do
+post '/get_categories_by_month' do
+  if session[:user_uid]
+    year, month = params[:month_year].split('-')
+    month_name = Date.new(year.to_i, month.to_i).strftime("%B")
+
+    @income_by_category = fetch_and_aggregate_expenses("income", year, month_name)
+    @expense_by_category = fetch_and_aggregate_expenses("expense", year, month_name)
+    @chosen_month_year = "#{month_name} #{year}"
+    @total_income = @income_by_category.values.sum
+    @total_expense = @expense_by_category.values.sum
+
+    erb :expense_by_category, locals: { year: year, month: month_name, total_income: @total_income, total_expense: @total_expense }
+  else
+    redirect to('/login')
+  end
+end
+
+get '/category_details/:type/:category' do
   content_type :json
   type = params[:type]
   category = params[:category]
-  current_year = Date.today.year
-  current_month = Date.today.strftime("%B")
+  month = params[:month] || Date.today.strftime("%B")
+  year = params[:year] || Date.today.year
 
-  base_path = "expense_tracker/#{type}/#{current_year}/#{current_month}"
+  base_path = "expense_tracker/#{type}/#{year}/#{month}"
   response = firebase.get(base_path)
 
   transactions = []
@@ -1635,4 +1678,3 @@ get '/ajax/category_details/:type/:category' do
     { success: false, error: "Error retrieving category details" }.to_json
   end
 end
-
