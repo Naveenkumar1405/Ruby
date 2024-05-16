@@ -430,7 +430,7 @@
     <% end %>
   </section>
 </main>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     function deleteTransaction(type, year, month, day, category, timestamp) {
         if (confirm("Are you sure you want to delete this transaction?")) {
@@ -496,20 +496,20 @@
                 method: 'POST',
                 body: new FormData(document.getElementById('graphForm'))
             })
-              .then(response => {
-                  if (!response.ok) {
-                      throw new Error(`Choose the From and To Dates Correctly!`);
-                  }
-                  return response.json();
-              })
-              .then(data => {
-                  updateGraphs(data.expense_data, data.income_data);
-                  modal.style.display = "block";
-              })
-              .catch(error => {
-                  console.error('Error:', error);
-                  alert(error.message);
-              });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Choose the From and To Dates Correctly!`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    updateGraphs(data.expense_data, data.income_data);
+                    modal.style.display = "block";
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(error.message);
+                });
         }
 
         function updateGraphs(expenseData, incomeData) {
