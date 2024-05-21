@@ -7,6 +7,9 @@ require 'date'
 require 'cgi'
 require 'csv'
 require 'httparty'
+require 'rack/reloader'
+
+use Rack::Reloader, 0
 
 FIREBASE_URL = "https://marketing-data-d141d-default-rtdb.firebaseio.com/"
 FIREBASE_API_KEY = "AIzaSyCCTeiCYTB_npcWKKxl-Oj0StQLTmaFOaE"
@@ -1631,7 +1634,15 @@ get '/expense_by_category' do
     @total_income = @income_by_category.values.sum
     @total_expense = @expense_by_category.values.sum
 
-    erb :expense_by_category, locals: { year: current_year, month: current_month, total_income: @total_income, total_expense: @total_expense }
+    erb :expense_by_category, locals: {
+      year: current_year,
+      month: current_month,
+      total_income: @total_income,
+      total_expense: @total_expense,
+      view_type: 'monthly',
+      from_date: nil,
+      to_date: nil
+    }
   else
     redirect to('/login')
   end
@@ -1648,24 +1659,114 @@ post '/get_categories_by_month' do
     @total_income = @income_by_category.values.sum
     @total_expense = @expense_by_category.values.sum
 
-    erb :expense_by_category, locals: { year: year, month: month_name, total_income: @total_income, total_expense: @total_expense }
+    erb :expense_by_category, locals: {
+      year: year,
+      month: month_name,
+      total_income: @total_income,
+      total_expense: @total_expense,
+      view_type: 'monthly',
+      from_date: nil,
+      to_date: nil
+    }
   else
     redirect to('/login')
   end
+end
+
+post '/get_categories_by_date_range' do
+  if session[:user_uid]
+    from_date = params[:from_date]
+    to_date = params[:to_date]
+
+    @income_by_category = fetch_and_aggregate_expenses_by_date_range("income", from_date, to_date)
+    @expense_by_category = fetch_and_aggregate_expenses_by_date_range("expense", from_date, to_date)
+    @total_income = @income_by_category.values.sum
+    @total_expense = @expense_by_category.values.sum
+
+    erb :expense_by_category, locals: {
+      from_date: from_date,
+      to_date: to_date,
+      total_income: @total_income,
+      total_expense: @total_expense,
+      view_type: 'date_range',
+      year: nil,
+      month: nil
+    }
+  else
+    redirect to('/login')
+  end
+end
+
+def fetch_and_aggregate_expenses_by_date_range(type, from_date, to_date)
+  expenses_by_category = {}
+  (Date.parse(from_date)..Date.parse(to_date)).each do |date|
+    year = date.year
+    month = date.strftime("%B")
+    day = date.day
+    base_path = "expense_tracker/#{type}/#{year}/#{month}/#{day}"
+    expenses = firebase.get(base_path)
+
+    if expenses.success? && expenses.body
+      expenses.body.each do |category, transactions|
+        transactions.each do |_time, data|
+          expenses_by_category[category] ||= 0
+          expenses_by_category[category] += data['amount'].to_f
+        end
+      end
+    end
+  end
+  expenses_by_category
 end
 
 get '/category_details/:type/:category' do
   content_type :json
   type = params[:type]
   category = params[:category]
-  month = params[:month] || Date.today.strftime("%B")
-  year = params[:year] || Date.today.year
+  from_date = params[:from_date]
+  to_date = params[:to_date]
+  year =  Date.today.year
+  month =  Date.today.strftime("%B")
 
+  if from_date && to_date
+    fetch_category_details_by_date_range(type, category, from_date, to_date)
+  elsif year && month
+    fetch_category_details_by_month(type, category, year, month)
+  end
+end
+
+def fetch_category_details_by_date_range(type, category, from_date, to_date)
+  begin
+    transactions = []
+    (Date.parse(from_date)..Date.parse(to_date)).each do |date|
+      day = date.day
+      base_path = "expense_tracker/#{type}/#{date.year}/#{date.strftime("%B")}/#{day}"
+      response = firebase.get(base_path)
+
+      if response.success? && response.body && response.body[category]
+        response.body[category].each do |timestamp, details|
+          transactions << details.merge({ 'day' => day, 'timestamp' => timestamp })
+        end
+      end
+    end
+
+    if transactions.any?
+      { success: true, transactions: transactions }.to_json
+    else
+      { success: false, error: "No transactions found for the specified category and date range" }.to_json
+    end
+  rescue ArgumentError => e
+    { success: false, error: "Invalid date format. Please provide dates in the format YYYY-MM-DD" }.to_json
+  end
+end
+
+def fetch_category_details_by_month(type, category, year, month)
   base_path = "expense_tracker/#{type}/#{year}/#{month}"
+  puts "Fetching data from: #{base_path}"
   response = firebase.get(base_path)
 
   transactions = []
   if response.success?
+    puts "Response body: #{response.body}"
     response.body.each do |day, categories|
       if categories[category]
         categories[category].each do |timestamp, details|
@@ -1675,6 +1776,9 @@ get '/category_details/:type/:category' do
     end
     { success: true, transactions: transactions }.to_json
   else
+    puts "Failed to fetch data: #{response.body}" # Add this debugging statement
     { success: false, error: "Error retrieving category details" }.to_json
   end
 end
+
+

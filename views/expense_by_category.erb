@@ -3,9 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <title>Expenses by Category</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" type="image/x-icon" href="/img/fav.png">
   <style>
       body {
           font-family: Arial, sans-serif;
+      }
+
+      .top-forms {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 20px;
+      }
+
+      .form-wrapper {
+          display: flex;
+          align-items: center;
+          margin-bottom: 20px;
+      }
+
+      .input-group {
+          display: flex;
+          align-items: center;
+      }
+
+      input[type="month"],
+      input[type="date"],
+      button {
+          padding: 10px;
+          margin-right: 10px;
+          border-radius: 5px;
+          border: 1px solid #ccc;
+          background-color: #f8f8f8;
+      }
+
+      button {
+          background-color: #0772ed;
+          color: #fff;
+          font-weight: bold;
+          cursor: pointer;
+      }
+
+      main {
+          max-width: 1400px;
       }
 
       .category-section {
@@ -29,44 +72,6 @@
           text-decoration: none;
           color: #333;
       }
-  </style>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <link rel="stylesheet" href="/css/styles.css">
-  <style>
-      main {
-          max-width: 1400px;
-      }
-      .form-wrapper {
-          margin-bottom: 20px;
-      }
-
-      .input-group {
-          display: flex;
-          align-items: center;
-      }
-
-      input[type="month"],
-      button {
-          padding: 10px;
-          margin-right: 10px;
-          border-radius: 5px;
-          border: 1px solid #ccc;
-          background-color: #f8f8f8;
-      }
-
-      button {
-          background-color: #0772ed;
-          color: #fff;
-          font-weight: bold;
-          cursor: pointer;
-          border-color: black;
-      }
-
-      .category-section {
-          margin-bottom: 20px;
-      }
 
       .category-header {
           display: flex;
@@ -75,16 +80,24 @@
           margin-bottom: 10px;
       }
 
-      .category-header h2 {
-          margin: 0;
+      #details {
+          margin-top: 20px;
       }
 
-      .total-boxes {
-          display: flex;
-          justify-content: space-between;
+      table {
+          width: 100%;
+          border-collapse: collapse;
           margin-bottom: 20px;
       }
 
+      th, td {
+          padding: 8px;
+          border: 1px solid #ddd;
+      }
+
+      th {
+          background-color: #f4f4f4;
+      }
       .total-box {
           padding: 10px;
           border-radius: 5px;
@@ -100,47 +113,12 @@
           background-color: #32CD32;
           color: #00008B;
       }
-
-      .categories-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 10px;
-      }
-
-      .category {
-          padding: 10px;
-          background-color: #f8f8f8;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-      }
-
-      .category a {
-          text-decoration: none;
-          color: #333;
-      }
-
-      table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 20px;
-          margin-bottom: 40px;
-      }
-
-      th, td {
-          border: 1px solid #ddd;
-          padding: 8px;
-      }
-
-      th {
-          background-color: #f2f2f2;
-      }
       .total {
           font-weight: bold;
-          font-size: 36px;
+          font-size: 25px;
+          padding: 0 10px 0 10px;
       }
   </style>
-  <link rel="icon" type="image/x-icon" href="/img/fav.png">
-  <title>Onwords WorkSpace</title>
 </head>
 <body>
 <header class="header">
@@ -323,35 +301,54 @@
     </div>
   </nav>
 </div>
-<main>
 
-  <div class="form-wrapper">
-    <form action="/get_categories_by_month" method="post">
-      <div class="input-group">
-        <input type="month" name="month_year" required>
-        <button type="submit">Monthly Data</button>
-      </div>
-      <% if defined?(year) && defined?(month) %>
-        <p>Selected Month: <%= month %> <%= year %></p>
-      <% end %>
-    </form>
+<main>
+  <div class="top-forms">
+    <div class="form-wrapper">
+      <form action="/get_categories_by_month" method="post">
+        <div class="input-group">
+          <input type="month" name="month_year" required>
+          <button type="submit">Monthly Data</button>
+        </div>
+        <% if view_type == 'monthly' %>
+          <p>Selected Month: <%= month %> <%= year %></p>
+        <% end %>
+      </form>
+    </div>
+
+    <div class="form-wrapper">
+      <form action="/get_categories_by_date_range" method="post">
+        <div class="input-group">
+          <label for="from_date"></label>
+          <input type="date" name="from_date" required>
+
+          <label for="to_date"></label>
+          <input type="date" name="to_date" required>
+
+          <button type="submit">Get Data</button>
+        </div>
+        <% if view_type == 'date_range' %>
+          <p>Selected Date Range: <%= from_date %> to <%= to_date %></p>
+        <% end %>
+      </form>
+    </div>
   </div>
 
   <div class="category-section">
     <div class="category-header">
       <h2>Income</h2>
-      <div id="totals" class="total-box expense-box">
-        <p>₹<span id="total_expense"><%= total_income.to_i %></span></p>
+      <div id="totals" class="total-box income-box">
+        <p class="total">₹<span id="total_income"><%= total_income.to_i %></span></p>
       </div>
     </div>
     <div class="categories-grid income-table income">
       <% if @income_by_category.empty? %>
-        <p>No income records found for this month.</p>
+        <p>No income records found for this <%= view_type == 'monthly' ? 'month' : 'date range' %>.</p>
       <% else %>
         <% @income_by_category.each do |category, amount| %>
           <div class="category">
-            <a href="javascript:void(0)" onclick="fetchCategoryDetails('income', '<%= category %>', '<%= year %>', '<%= month %>')">
-              <%= category %>
+            <a href="javascript:void(0)" onclick="fetchCategoryDetails('income', '<%= category %>', '<%= year %>', '<%= month %>', '<%= from_date %>', '<%= to_date %>')">
+            <%= category %>
             </a>: ₹<%= amount.to_i %>
           </div>
         <% end %>
@@ -362,18 +359,18 @@
   <div class="category-section">
     <div class="category-header">
       <h2>Expenses</h2>
-      <div id="totals" class="total-box income-box">
-        <p>₹<span id="total_income"><%= total_expense.to_i %></span></p>
+      <div id="totals" class="total-box expense-box">
+        <p class="total">₹<span id="total_expense"><%= total_expense.to_i %></span></p>
       </div>
     </div>
     <div class="categories-grid expense-table expense">
       <% if @expense_by_category.empty? %>
-        <p>No expense records found for this month.</p>
+        <p>No expense records found for this <%= view_type == 'monthly' ? 'month' : 'date range' %>.</p>
       <% else %>
         <% @expense_by_category.each do |category, amount| %>
           <div class="category">
-            <a href="javascript:void(0)" onclick="fetchCategoryDetails('expense', '<%= category %>', '<%= year %>', '<%= month %>')">
-              <%= category %>
+            <a href="javascript:void(0)" onclick="fetchCategoryDetails('expense', '<%= category %>', '<%= year %>', '<%= month %>', '<%= from_date %>', '<%= to_date %>')">
+            <%= category %>
             </a>: ₹<%= amount.to_i %>
           </div>
         <% end %>
@@ -384,32 +381,57 @@
   <div id="details"></div>
 </main>
 <script>
-    function fetchCategoryDetails(type, category, year, month) {
-        fetch(`/category_details/${type}/${encodeURIComponent(category)}?year=${year}&month=${encodeURIComponent(month)}`)
+    function fetchCategoryDetails(type, category, year, month, from_date, to_date) {
+        if (year && month) {
+            const url = `/category_details/${type}/${encodeURIComponent(category)}?year=${year}&month=${encodeURIComponent(month)}`;
+            fetchDetails(url);
+        } else if (from_date && to_date) {
+            const url = `/category_details/${type}/${encodeURIComponent(category)}?from_date=${from_date}&to_date=${to_date}`;
+            fetchDetails(url);
+        }
+    }
+
+    function fetchCategoryDetailsByDateRange(type, category, from_date, to_date) {
+        const url = `/category_details/${type}/${encodeURIComponent(category)}?from_date=${from_date}&to_date=${to_date}`;
+        fetchDetails(url);
+    }
+
+    function fetchCategoryDetailsByMonth(type, category, year, month) {
+        const url = `/category_details/${type}/${encodeURIComponent(category)}?year=${year}&month=${encodeURIComponent(month)}`;
+        fetchDetails(url);
+    }
+
+    function fetchDetails(url) {
+        fetch(url)
             .then(response => response.json())
             .then(data => {
+                const detailsDiv = document.getElementById('details');
+                detailsDiv.innerHTML = ''; // Clear previous details
+
                 if (data.success) {
                     const table = document.createElement('table');
                     table.innerHTML = `
-              <tr>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Details</th>
-              </tr>
-            `;
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Details</th>
+                    </tr>
+                `;
                     data.transactions.forEach(transaction => {
                         const row = table.insertRow();
                         row.innerHTML = `
-                <td>${transaction.day}</td>
-                <td>${parseFloat(transaction.amount).toFixed(0)}</td>
-                <td>${transaction.details}</td>
-              `;
+                        <td>${transaction.day}</td>
+                        <td>${parseFloat(transaction.amount).toFixed(0)}</td>
+                        <td>${transaction.details}</td>
+                    `;
                     });
-                    document.getElementById('details').innerHTML = ''; // Clear previous details
-                    document.getElementById('details').appendChild(table);
+                    detailsDiv.appendChild(table);
                 } else {
-                    document.getElementById('details').innerHTML = 'Error loading details.';
+                    detailsDiv.innerHTML = '<p>Error loading details. Please try again later.</p>';
                 }
+            })
+            .catch(() => {
+                document.getElementById('details').innerHTML = '<p>Error loading details. Please try again later.</p>';
             });
     }
 </script>
