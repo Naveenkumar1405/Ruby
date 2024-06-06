@@ -1443,7 +1443,7 @@ post '/submit_amount' do
   parsed_date = Date.parse(date)
   year = parsed_date.year
   month = parsed_date.strftime("%B")
-  day = parsed_date.day
+  day = parsed_date.strftime("%d")
   time = Time.now.to_i
   base_path = "expense_tracker/#{type}/#{year}/#{month}"
   transaction_path = "#{base_path}/#{day}/#{category}/#{time}"
