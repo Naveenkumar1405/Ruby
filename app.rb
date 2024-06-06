@@ -878,7 +878,6 @@ post '/request_feedback' do
     end
   rescue => e
     status 500
-    puts "Error: #{e.message}"
     {error: "Error sending message."}.to_json
   end
 end
@@ -1347,11 +1346,9 @@ get '/installation_tracker' do
         @staff_names = all_staff.select { |_uid, details| details['department'] == 'INSTALLATION' }.map { |_uid, details| details['name'] }
       else
         @staff_names = []
-        puts "Failed to fetch staff details: #{staff_response.status}"
       end
     rescue => e
       @staff_names = []
-      puts "Error fetching staff details: #{e.message}"
     end
 
     @installation_records = []
@@ -1384,9 +1381,7 @@ get '/installation_tracker' do
     else
       puts "Failed to fetch data or incorrect data format"
     end
-
     erb :installation_tracker
-
   else
     redirect to('/login')
   end
@@ -1469,9 +1464,7 @@ helpers do
       path = "expense_tracker/#{section}/#{year}/#{month_name}"
       response = firebase.get(path)
       data = response.body if response.success?
-
       next unless data.is_a?(Hash)
-
       data.each do |day, categories|
         categories.each do |category, transactions_details|
           transactions_details.each do |timestamp, details|
@@ -1490,9 +1483,7 @@ helpers do
     transactions.sort_by! { |transaction| [transaction['date'], transaction['timestamp']] }
     transactions
   end
-end
 
-helpers do
   def fetch_transactions_range(from_date, to_date)
     expense_data = Hash.new(0)
     income_data = Hash.new(0)
@@ -1595,12 +1586,12 @@ post '/load_graphs' do
 end
 
 helpers do
-  def calculateTotalExpense(record)
+  def calculate_total_expense(record)
     amount = record['amount'] ? record['amount'].to_f : 0
-    hardwareExpense = record['hardware_expense'] ? record['hardware_expense'].to_f : 0
-    travelExpense = record['travel_expense'] ? record['travel_expense'].to_f : 0
-    totalExpense = amount + hardwareExpense + travelExpense
-    totalExpense.nan? ? 'N/A' : format('%.2f', totalExpense)
+    hardware_expense = record['hardware_expense'] ? record['hardware_expense'].to_f : 0
+    travel_expense = record['travel_expense'] ? record['travel_expense'].to_f : 0
+    total_expense = amount + hardware_expense + travel_expense
+    total_expense.nan? ? 'N/A' : format('%.2f', total_expense)
   end
 end
 
@@ -1761,12 +1752,10 @@ end
 
 def fetch_category_details_by_month(type, category, year, month)
   base_path = "expense_tracker/#{type}/#{year}/#{month}"
-  puts "Fetching data from: #{base_path}"
   response = firebase.get(base_path)
 
   transactions = []
   if response.success?
-    puts "Response body: #{response.body}"
     response.body.each do |day, categories|
       if categories[category]
         categories[category].each do |timestamp, details|
@@ -1776,9 +1765,6 @@ def fetch_category_details_by_month(type, category, year, month)
     end
     { success: true, transactions: transactions }.to_json
   else
-    puts "Failed to fetch data: #{response.body}" # Add this debugging statement
     { success: false, error: "Error retrieving category details" }.to_json
   end
 end
-
-
