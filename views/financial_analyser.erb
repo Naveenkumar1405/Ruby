@@ -358,12 +358,13 @@
   </nav>
 </div>
 <main>
+
   <section>
     <section class="total-boxes">
-      <div class="total-box expense-box">
+      <div id="totals" class="total-box expense-box">
         <p>₹<span id="total_expense">0.00</span></p>
       </div>
-      <div class="total-box income-box">
+      <div id="totals" class="total-box income-box">
         <p>₹<span id="total_income">0.00</span></p>
       </div>
     </section>
@@ -388,14 +389,13 @@
         </form>
       </div>
     </div>
-
     <!-- The Modal -->
     <div id="myModal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
         <p class="total" style="color: red;"><span id="total_date_expense">0.00</span></p>
         <canvas id="expenseChart" width="400" height="100"></canvas>
-        <p class="total" style="color: #5dff00"><span id="total_date_income">0.00"></span></p>
+        <p class="total" style="color: #5dff00"><span id="total_date_income">0.00</span></p>
         <canvas id="incomeChart" width="400" height="100"></canvas>
       </div>
     </div>
@@ -414,14 +414,14 @@
         </tr>
         </thead>
         <tbody>
-        <% @all_transactions.each do |transaction| %>
+        <% @all_transactions.sort_by { |transaction| -transaction['date'].to_time.to_i }.each do |transaction| %>
           <tr class="<%= transaction['section'].downcase %>">
             <td><%= transaction['date'].strftime("%d-%B") %></td>
             <td><%= transaction['category'] %></td>
             <td><%= transaction['details'] %></td>
             <td data-section="<%= transaction['section'] %>">₹ <%= transaction['amount'] %></td>
             <td>
-              <button onclick="deleteTransaction('<%= transaction['section'].downcase %>', '<%= transaction['date'].year %>', '<%= transaction['date'].strftime('%B') %>', '<%= transaction['date'].strftime('%d') %>', '<%= transaction['category'] %>', '<%= transaction['timestamp'] %>')">Delete</button>
+              <button onclick="deleteTransaction('<%= transaction['section'].downcase %>', '<%= transaction['date'].year %>', '<%= transaction['date'].strftime('%B') %>', '<%= transaction['date'].strftime("%d") %>', '<%= transaction['category'] %>', '<%= transaction['timestamp'] %>')">Delete</button>
             </td>
           </tr>
         <% end %>
@@ -430,7 +430,6 @@
     <% end %>
   </section>
 </main>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     function deleteTransaction(type, year, month, day, category, timestamp) {
@@ -438,28 +437,30 @@
             fetch(`/delete_transaction/${type}/${year}/${month}/${day}/${encodeURIComponent(category)}/${timestamp}`, {
                 method: 'DELETE',
             })
-                .then(response => {
-                    if (response.ok) {
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
                         alert("Transaction deleted successfully.");
                         window.location.reload();
                     } else {
-                        alert("Failed to delete transaction.");
+                        alert("Failed to delete transaction: " + data.error);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert("An error occurred while deleting transaction.");
+                    alert("An error occurred while deleting the transaction.");
                 });
         }
     }
-
+</script>
+<script>
     document.addEventListener("DOMContentLoaded", function() {
         var transactions = document.querySelectorAll('td[data-section]');
         var totalExpense = 0;
         var totalIncome = 0;
 
         transactions.forEach(function(td) {
-            var amount = parseFloat(td.innerText.replace('₹', '').trim());
+            var amount = parseFloat(td.innerText.replace('₹', ''));
             if (td.getAttribute('data-section') === 'Expense') {
                 totalExpense += amount;
             } else if (td.getAttribute('data-section') === 'Income') {
@@ -467,13 +468,11 @@
             }
         });
 
-        console.log("Total Expense:", totalExpense); // Debug log
-        console.log("Total Income:", totalIncome); // Debug log
-
         document.getElementById('total_expense').innerText = totalExpense.toFixed(2);
         document.getElementById('total_income').innerText = totalIncome.toFixed(2);
     });
-
+</script>
+<script>
     document.addEventListener("DOMContentLoaded", function() {
         var modal = document.getElementById("myModal");
         var span = document.getElementsByClassName("close")[0];
@@ -500,7 +499,7 @@
             })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Choose the From and To Dates Correctly!');
+                        throw new Error(`Choose the From and To Dates Correctly!`);
                     }
                     return response.json();
                 })

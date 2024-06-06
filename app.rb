@@ -1544,13 +1544,15 @@ delete '/delete_transaction/:type/:year/:month/:day/:category/:timestamp' do
   response = firebase.delete(transaction_path)
 
   if response.success?
+    logger.info "Transaction deleted successfully: #{transaction_path}"
     status 200
     content_type :json
     { success: true }.to_json
   else
+    logger.error "Failed to delete transaction: #{transaction_path}, Error: #{response.body}"
     status 500
     content_type :json
-    { success: false, error: "Failed to delete transaction" }.to_json
+    { success: false, error: "Failed to delete transaction", details: response.body }.to_json
   end
 end
 
