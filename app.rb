@@ -1244,7 +1244,6 @@ get '/get_customer_states_and_incharge_counts' do
   end
 end
 
-
 get '/view_buckets' do
   if session[:user_uid]
     response = firebase.get('Buckets')
